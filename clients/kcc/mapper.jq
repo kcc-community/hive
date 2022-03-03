@@ -32,10 +32,10 @@ def to_bool:
 . + {
   "config": {
     "posa": {
-      "period": 3,
-      "epoch": 100,
-      "v2InitialValidators": [],
-      "v2AdminAddress": "0x0000000000000000000000000000000000000000"
+      "period": env.HIVE_KCC_POSA_BLOCK_INTERVAL|to_int,
+      "epoch": env.HIVE_KCC_POSA_EPOCH|to_int,
+      "v2InitialValidators": env.HIVE_KCC_POSA_V2_INIT_VALIDATORS | (if . == null then [] else (.|split(",")) end ),
+      "v2AdminAddress":  env.HIVE_KCC_POSA_ADMIN | (if . == null then "0x0000000000000000000000000000000000000000" else . end) 
     },
     "chainId": env.HIVE_CHAIN_ID|to_int,
     "homesteadBlock": 0,
@@ -50,8 +50,6 @@ def to_bool:
     "istanbulBlock": 0,
     "muirGlacierBlock": 0,
     "berlinBlock": 0,
-    "yolov2Block": env.HIVE_FORK_BERLIN|to_int,
-    "yolov3Block": env.HIVE_FORK_BERLIN|to_int,
     "londonBlock": env.HIVE_FORK_LONDON|to_int,
     "kccv2Block": env.HIVE_FORK_KCC_V2| to_int,
   }|remove_empty

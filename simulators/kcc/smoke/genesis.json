@@ -1,25 +1,4 @@
 {
-  "config": {
-    "chainId": 321,
-    "homesteadBlock": 0,
-    "daoForkSupport": true,
-    "eip150Block": 0,
-    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "eip155Block": 0,
-    "eip158Block": 0,
-    "byzantiumBlock": 0,
-    "constantinopleBlock": 0,
-    "petersburgBlock": 0,
-    "istanbulBlock": 0,
-    "muirGlacierBlock": 0,
-    "berlinBlock": 0,
-    "posa": {
-      "period": 3,
-      "epoch": 100,
-      "v2InitialValidators": [],
-      "v2AdminAddress": "0x0000000000000000000000000000000000000000"
-    }
-  },
   "nonce": "0x0",
   "timestamp": "0x60b5e164",
   "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000658bdf435d810c91414ec09147daa6db624063790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",

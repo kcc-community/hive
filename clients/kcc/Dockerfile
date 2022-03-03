@@ -45,6 +45,8 @@ ADD genesis.json /genesis.json
 # Export the usual networking ports to allow outside access to the node
 EXPOSE 8545 8546 8547 30303 30303/udp
 
-
+# default parameters 
+ENV HIVE_KCC_POSA_BLOCK_INTERVAL 3
+ENV HIVE_KCC_POSA_EPOCH 100
 
 ENTRYPOINT ["/geth.sh"]

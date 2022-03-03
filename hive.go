@@ -37,7 +37,7 @@ func main() {
 		simDevMode            = flag.Bool("dev", false, "Only starts the simulator API endpoint (listening at 127.0.0.1:3000 by default) without starting any simulators.")
 		simDevModeAPIEndpoint = flag.String("dev.addr", "127.0.0.1:3000", "Endpoint that the simulator API listens on")
 
-		clients = flag.String("client", "go-ethereum", "Comma separated `list` of clients to use. Client names in the list may be given as\n"+
+		clients = flag.String("client", "kcc_latest", "Comma separated `list` of clients to use. Client names in the list may be given as\n"+
 			"just the client name, or a client_branch specifier. If a branch name is supplied,\n"+
 			"the client image will use the given git branch or docker tag. Multiple instances of\n"+
 			"a single client type may be requested with different branches.\n"+
