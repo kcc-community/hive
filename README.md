@@ -1,3 +1,22 @@
+# hive-kcc: a fork of ethereum hive with cases for KCC 
+
+Run all available integration test cases against kcc:  
+
+```
+hive --sim kcc --client kcc
+```
+
+available cases:  
+
+- [A general smoke test](simulators/kcc/smoke/main.go)  
+- [Single node kcc-v2 hardfork test](simulators/kcc/smoke-v2-hardfork/main.go)  
+- [Multi-node kcc-v2 hardfork test](simulators/kcc/v2-multinode-hardfork/main.go)
+
+---
+---
+---
+---
+
 # hive - Ethereum end-to-end test harness
 
 Hive is a system for running integration tests against Ethereum clients.
