@@ -175,7 +175,7 @@ func dumpBlockHeader(block *types.Block) {
 
 	bytes, err := block.Header().MarshalJSON()
 
-	if err != nil {
+	if err == nil {
 		fmt.Printf("block #%v:\n%v", block.Header().Number.Uint64(), string(bytes))
 	}
 }
