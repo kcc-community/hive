@@ -128,28 +128,11 @@ func MultiNodesPunishment(t *hivesim.T) {
 
 	ethClient := ethclient.NewClient(vals[0].client.RPC())
 
-
-	validatorCli, err := validators.NewValidators(ValidatorsAddress, ethClient)
-	if err != nil {
-		t.Fatalf("failed to new validator, err: %+v", err)
-	}
-
-	valPrivateKey, err := crypto.HexToECDSA("9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c")
-	if err != nil {
-		t.Fatalf("failed to parse private key for punish, err: %+v", err)
-	}
-	valTransactor, err := bind.NewKeyedTransactorWithChainID(valPrivateKey, big.NewInt(321))
-	if err != nil {
-		t.Fatalf("failed to create a singer for punish, err: %+v", err)
-	}
-
-	validatorCli.GetActiveValidators(valTransactor)
-
 	t.Logf("waiting for the hard fork to come...")
 	for {
 		number, err := ethClient.BlockNumber(context.TODO())
 		if err != nil {
-			t.Fatalf("failed to get block number:  %v", err)
+			t.Fatalf("failed to get block number:  %v\n", err)
 		}
 
 		if number < 9 {
@@ -159,56 +142,6 @@ func MultiNodesPunishment(t *hivesim.T) {
 		}
 		break
 	}
-
-
-
-	punishCli, err := punish.NewPunish(PunishAddress, ethClient)
-	if err != nil {
-		t.Fatalf("failed to new punish, err: %+v", err)
-	}
-	privateKey, err := crypto.HexToECDSA("9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c")
-	if err != nil {
-		t.Fatalf("failed to parse private key for punish, err: %+v", err)
-	}
-	transactor, err := bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(321))
-	if err != nil {
-		t.Fatalf("failed to create a singer for punish, err: %+v", err)
-	}
-
-
-
-	punishedHeight := make(map[uint64]struct{})
-	bn := uint64(0)
-	for i := 0; i < punishThreshold; i++ {
-		for {
-			currentBlockNumber, err := ethClient.BlockNumber(context.TODO())
-			if err != nil {
-				t.Fatalf("failed to get block number: %v", err)
-			}
-
-			if _, ok := punishedHeight[currentBlockNumber]; !ok {
-				punishCli.Punish(transactor, common.HexToAddress(vals[2].miner))
-			}
-			time.Sleep(time.Second * 3)
-			bn = currentBlockNumber
-		}
-	}
-
-	// balance of validator contract before punishment
-	balanceBefore, err := ethClient.BalanceAt(context.TODO(), ValidatorsAddress, big.NewInt(int64(bn)))
-	if err != nil {
-		t.Logf("failed to get balance:%v", err)
-	}
-
-	// balance of validator contract after punishment
-	balanceAfter, err := ethClient.BalanceAt(context.TODO(), ValidatorsAddress, big.NewInt(int64(bn+1)))
-	if err != nil {
-		t.Logf("failed to get balance:%v", err)
-	}
-
-	diff := new(big.Int).Sub(balanceAfter, balanceBefore)
-	t.Logf("balance of validator contract, before punishment: %+v, after punishment: %+v, diff: %+v", balanceBefore.String(), balanceAfter.String(), diff.String())
-
 
 	tx := new(types.Transaction)
 	new(sync.Once).Do(func() {
@@ -236,8 +169,6 @@ func MultiNodesPunishment(t *hivesim.T) {
 		}
 	})
 
-
-
 	// wait for the tx to be included in a block
 	for {
 		_, pending, err := ethClient.TransactionByHash(context.TODO(), tx.Hash())
@@ -253,28 +184,73 @@ func MultiNodesPunishment(t *hivesim.T) {
 		break
 	}
 
-	currentBlockNumber, err := ethClient.BlockNumber(context.TODO())
+	validatorCli, err := validators.NewValidators(ValidatorsAddress, ethClient)
 	if err != nil {
-		t.Fatalf("failed to get block number: %v", err)
+		t.Fatalf("failed to new validator, err: %+v", err)
 	}
 
-	// the first block of the next epoch
-	nextEpochStartBlock := (currentBlockNumber + 10) - (currentBlockNumber+10)%10
+	address := common.HexToAddress("0x147B8eb97fD247D06C4006D269c90C1908Fb5D54")
+	validatorsSilce, err := validatorCli.GetActiveValidators(&bind.CallOpts{
+		Pending:     false,
+		From:        address,
+		BlockNumber: nil,
+		Context:     nil,
+	})
 
-	// wait for block "nextEpochStartBlock"
-	for {
-		number, err := ethClient.BlockNumber(context.TODO())
-		if err != nil {
-			t.Fatalf("failed to get block number:  %v", err)
-		}
+	t.Logf("validator length: %+v\n", len(validatorsSilce))
+	for i := range validatorsSilce {
+		t.Logf("validators: %+v\n", validatorsSilce[i])
+	}
 
-		if number <= nextEpochStartBlock {
-			t.Logf("current Block number is #%v", number)
+
+	punishCli, err := punish.NewPunish(PunishAddress, ethClient)
+	if err != nil {
+		t.Fatalf("failed to new punish, err: %+v", err)
+	}
+	privateKey, err := crypto.HexToECDSA("9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c")
+	if err != nil {
+		t.Fatalf("failed to parse private key for punish, err: %+v", err)
+	}
+	transactor, err := bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(321))
+	if err != nil {
+		t.Fatalf("failed to create a singer for punish, err: %+v", err)
+	}
+
+	punishedHeight := make(map[uint64]struct{})
+	bn := uint64(0)
+	for i := 0; i < punishThreshold; i++ {
+		for {
+			currentBlockNumber, err := ethClient.BlockNumber(context.TODO())
+			if err != nil {
+				t.Fatalf("failed to get block number: %v", err)
+			}
+
+			if _, ok := punishedHeight[currentBlockNumber]; !ok {
+				_, err := punishCli.Punish(transactor, common.HexToAddress(vals[2].miner))
+				if err != nil {
+					t.Log("failed to call punish contract, err: %+v\n", err)
+				} else {
+					t.Logf("punish validator: %+v successful\n", vals[2].miner);
+				}
+			}
 			time.Sleep(time.Second * 3)
-			continue
+			bn = currentBlockNumber
 		}
-
-		break
 	}
+
+	// balance of validator contract before punishment
+	balanceBefore, err := ethClient.BalanceAt(context.TODO(), ValidatorsAddress, big.NewInt(int64(bn)))
+	if err != nil {
+		t.Logf("failed to get balance:%v", err)
+	}
+
+	// balance of validator contract after punishment
+	balanceAfter, err := ethClient.BalanceAt(context.TODO(), ValidatorsAddress, big.NewInt(int64(bn+1)))
+	if err != nil {
+		t.Logf("failed to get balance:%v", err)
+	}
+
+	diff := new(big.Int).Sub(balanceAfter, balanceBefore)
+	t.Logf("balance of validator contract, before punishment: %+v, after punishment: %+v, diff: %+v", balanceBefore.String(), balanceAfter.String(), diff.String())
 
 }
