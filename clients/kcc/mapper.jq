@@ -50,6 +50,7 @@ def to_bool:
     "istanbulBlock": 0,
     "muirGlacierBlock": 0,
     "berlinBlock": 0,
+    "cve_2021_39137Block":env.HIVE_CVE_2021_39137_BLOCK|to_int,
     "londonBlock": env.HIVE_FORK_LONDON|to_int,
     "kccv2Block": env.HIVE_FORK_KCC_V2| to_int,
   }|remove_empty
