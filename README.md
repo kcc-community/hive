@@ -11,7 +11,9 @@ available cases:
 - [A general smoke test](simulators/kcc/smoke/main.go)  
 - [kcc-v2: hardfork test with a single node](simulators/kcc/smoke-v2-hardfork/main.go)  
 - [kcc-v2: hardfork test between multiple nodes](simulators/kcc/v2-multinode-hardfork/main.go)  
-- [kcc-v2: distribute block reward](simulators/kcc/v2-distribute-block-reward/Dockerfile)   
+- [kcc-v2: distribute block reward](simulators/kcc/v2-distribute-block-reward/Dockerfile)    
+- [kcc-v2: punishment](simulators/kcc/punishment/main.go)  
+
 
 ---
 ---
