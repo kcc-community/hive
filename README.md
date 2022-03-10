@@ -12,7 +12,8 @@ available cases:
 - [kcc-v2: hardfork test with a single node](simulators/kcc/smoke-v2-hardfork/main.go)  
 - [kcc-v2: hardfork test between multiple nodes](simulators/kcc/v2-multinode-hardfork/main.go)  
 - [kcc-v2: distribute block reward](simulators/kcc/v2-distribute-block-reward/Dockerfile)    
-- [kcc-v2: punishment](simulators/kcc/punishment/main.go)  
+- [kcc-v2: punishment](simulators/kcc/punishment/main.go)   
+- [kcc-issue-9: failure on synchronization due to CVE-2021-39137](simulators/kcc/issues/issue-9/main.go)  
 
 
 ---
