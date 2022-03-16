@@ -10,9 +10,10 @@ import (
 
 func main() {
 	suite := hivesim.Suite{
-		Name:        "kcc-v2-hardfork-smoke-test",
+		Name:        "kcc-v2-hardfork-single-node-test",
 		Description: "The smoke test for kcc-v2 hardfork",
 	}
+
 	suite.Add(hivesim.ClientTestSpec{
 		Role:        "eth1",
 		Name:        "kcc v2 hardfork",
@@ -38,7 +39,9 @@ func main() {
 		},
 		Run: hardforkTest,
 	})
+
 	hivesim.MustRunSuite(hivesim.New(), suite)
+
 }
 
 type block struct {
@@ -48,6 +51,12 @@ type block struct {
 }
 
 func hardforkTest(t *hivesim.T, c *hivesim.Client) {
+
+	if c.Type == "kcc_v1.0.3" {
+		t.Logf("kcc v1.0.3 is not used in this case")
+		return
+	}
+
 	start := time.Now()
 	timeout := 60 * time.Second
 

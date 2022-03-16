@@ -28,13 +28,19 @@ def to_bool:
   end
 ;
 
+# convert comma separated strings to []string
+def to_strings: 
+  if . == null then [] else (.|split(",")) end
+;
+
 # Replace config in input.
 . + {
   "config": {
     "posa": {
       "period": env.HIVE_KCC_POSA_BLOCK_INTERVAL|to_int,
       "epoch": env.HIVE_KCC_POSA_EPOCH|to_int,
-      "v2InitialValidators": env.HIVE_KCC_POSA_V2_INIT_VALIDATORS | (if . == null then [] else (.|split(",")) end ),
+      "v2InitialValidators": env.HIVE_KCC_POSA_V2_INIT_VALIDATORS | to_strings,
+      "v2InitialManagers": env.HIVE_KCC_POSA_V2_INIT_MANAGERS | (if . == null then (env.HIVE_KCC_POSA_V2_INIT_VALIDATORS | to_strings) else (.|split(",")) end ),
       "v2AdminAddress":  env.HIVE_KCC_POSA_ADMIN | (if . == null then "0x0000000000000000000000000000000000000000" else . end) 
     },
     "chainId": env.HIVE_CHAIN_ID|to_int,

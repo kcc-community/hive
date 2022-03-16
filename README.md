@@ -3,17 +3,23 @@
 Run all available integration test cases against kcc:  
 
 ```
-hive --sim kcc --client kcc
+hive --sim kcc --client kcc,kcc_v1.0.3
 ```
 
 available cases:  
 
 - [A general smoke test](simulators/kcc/smoke/main.go)  
-- [kcc-v2: hardfork test with a single node](simulators/kcc/smoke-v2-hardfork/main.go)  
+- [kcc-v2: hardfork test with a single node](simulators/kcc/v2-singlenode-hardfork/main.go)  
 - [kcc-v2: hardfork test between multiple nodes](simulators/kcc/v2-multinode-hardfork/main.go)  
-- [kcc-v2: distribute block reward](simulators/kcc/v2-distribute-block-reward/Dockerfile)    
-- [kcc-v2: punishment](simulators/kcc/punishment/main.go)   
+- [kcc-v2: distribute block reward](simulators/kcc/v2-distribute-block-reward/main.go)    
+- [kcc-v2: punishment](simulators/kcc/v2-punishment/main.go)   
 - [kcc-issue-9: failure on synchronization due to CVE-2021-39137](simulators/kcc/issues/issue-9/main.go)  
+
+
+Why do we need to specify two different versions of clients?  
+
+- kcc should be the latest version of kcc 
+- kcc v1.0.3 is a reference client for testing a synchronization issue([kcc-issue-9](simulators/kcc/issues/issue-9/main.go))
 
 
 ---
