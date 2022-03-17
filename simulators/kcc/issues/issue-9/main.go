@@ -64,7 +64,7 @@ func distributeBlockRewardTest(t *hivesim.T) {
 		// epoch : 10
 		"HIVE_KCC_POSA_EPOCH": "10",
 		// initial valiators
-		"HIVE_KCC_POSA_V2_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379",
+		"HIVE_KCC_POSA_ISHIKARI_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379",
 		// admin
 		"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
 		// sync mode
@@ -89,7 +89,7 @@ func distributeBlockRewardTest(t *hivesim.T) {
 		// epoch : 10
 		"HIVE_KCC_POSA_EPOCH": "10",
 		// initial valiators
-		"HIVE_KCC_POSA_V2_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379",
+		"HIVE_KCC_POSA_ISHIKARI_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379",
 		// admin
 		"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
 		// sync mode

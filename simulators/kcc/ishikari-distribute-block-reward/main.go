@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/hive/hivesim"
-	"github.com/ethereum/hive/simulators/kcc/v2-distribute-block-reward/reservepool"
+	"github.com/ethereum/hive/simulators/kcc/ishikari-distribute-block-reward/reservepool"
 )
 
 var (
@@ -23,7 +23,7 @@ var (
 
 func main() {
 	suite := hivesim.Suite{
-		Name:        "KCC v2 distribute block reward",
+		Name:        "KCC Ishikari distribute block reward",
 		Description: "",
 	}
 	suite.Add(hivesim.TestSpec{
@@ -50,11 +50,11 @@ func distributeBlockRewardTest(t *hivesim.T) {
 		// epoch : 10
 		"HIVE_KCC_POSA_EPOCH": "10",
 		// initial valiators
-		"HIVE_KCC_POSA_V2_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379",
+		"HIVE_KCC_POSA_ISHIKARI_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379",
 		// admin
 		"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
-		// kcc-v2 fork number
-		"HIVE_FORK_KCC_V2": "9",
+		// KCC Ishikari fork number
+		"HIVE_FORK_KCC_ISHIKARI": "9",
 		// sync mode
 		"HIVE_NODETYPE": "archive",
 	}, hivesim.WithStaticFiles(

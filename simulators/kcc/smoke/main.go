@@ -8,8 +8,8 @@ import (
 
 func main() {
 	suite := hivesim.Suite{
-		Name:        "kcc-v2-smoke",
-		Description: "the kcc-v2 smoke test case without v2 hardfork",
+		Name:        "kcc-smoke",
+		Description: "A general somke test case for KCC",
 	}
 	suite.Add(hivesim.ClientTestSpec{
 		Role:        "eth1",

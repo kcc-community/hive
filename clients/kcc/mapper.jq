@@ -39,9 +39,9 @@ def to_strings:
     "posa": {
       "period": env.HIVE_KCC_POSA_BLOCK_INTERVAL|to_int,
       "epoch": env.HIVE_KCC_POSA_EPOCH|to_int,
-      "v2InitialValidators": env.HIVE_KCC_POSA_V2_INIT_VALIDATORS | to_strings,
-      "v2InitialManagers": env.HIVE_KCC_POSA_V2_INIT_MANAGERS | (if . == null then (env.HIVE_KCC_POSA_V2_INIT_VALIDATORS | to_strings) else (.|split(",")) end ),
-      "v2AdminAddress":  env.HIVE_KCC_POSA_ADMIN | (if . == null then "0x0000000000000000000000000000000000000000" else . end) 
+      "ishikariInitialValidators": env.HIVE_KCC_POSA_ISHIKARI_INIT_VALIDATORS | to_strings,
+      "ishikariInitialManagers": env.HIVE_KCC_POSA_ISHIKARI_INIT_MANAGERS | (if . == null then (env.HIVE_KCC_POSA_ISHIKARI_INIT_VALIDATORS | to_strings) else (.|split(",")) end ),
+      "ishikariAdminAddress":  env.HIVE_KCC_POSA_ADMIN | (if . == null then "0x0000000000000000000000000000000000000000" else . end) 
     },
     "chainId": env.HIVE_CHAIN_ID|to_int,
     "homesteadBlock": 0,
@@ -58,6 +58,6 @@ def to_strings:
     "berlinBlock": 0,
     "cve_2021_39137Block":env.HIVE_CVE_2021_39137_BLOCK|to_int,
     "londonBlock": env.HIVE_FORK_LONDON|to_int,
-    "kccv2Block": env.HIVE_FORK_KCC_V2| to_int,
+    "ishikariBlock": env.HIVE_FORK_KCC_ISHIKARI| to_int,
   }|remove_empty
 }

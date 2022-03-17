@@ -10,13 +10,13 @@ import (
 
 func main() {
 	suite := hivesim.Suite{
-		Name:        "kcc-v2-hardfork-single-node-test",
-		Description: "The smoke test for kcc-v2 hardfork",
+		Name:        "Ishikari single node hardfork",
+		Description: "Single node hardfork ",
 	}
 
 	suite.Add(hivesim.ClientTestSpec{
 		Role:        "eth1",
-		Name:        "kcc v2 hardfork",
+		Name:        "kcc Ishikari hardfork",
 		Description: "wait for the hardfork",
 		Files: map[string]string{
 			"/genesis.json": "genesis.json",
@@ -31,11 +31,11 @@ func main() {
 			// epoch : 5
 			"HIVE_KCC_POSA_EPOCH": "5",
 			// initial valiators
-			"HIVE_KCC_POSA_V2_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379",
+			"HIVE_KCC_POSA_ISHIKARI_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379",
 			// admin
 			"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
-			// kcc-v2 fork number
-			"HIVE_FORK_KCC_V2": "9",
+			// KCC Ishikari  fork number
+			"HIVE_FORK_KCC_ISHIKARI": "9",
 		},
 		Run: hardforkTest,
 	})
@@ -75,7 +75,7 @@ func hardforkTest(t *hivesim.T, c *hivesim.Client) {
 			}
 			time.Sleep(time.Second)
 		} else if blockNumber.Uint64() == 9 {
-			t.Logf("kcc-v2 hardfork block #9 mined")
+			t.Logf("kcc Ishikari hardfork block #9 mined")
 		} else {
 			t.Logf("block #%v mined", blockNumber)
 			break

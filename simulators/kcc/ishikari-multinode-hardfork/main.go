@@ -15,7 +15,7 @@ import (
 
 func main() {
 	suite := hivesim.Suite{
-		Name:        "KCC v2 multinode hardfork test",
+		Name:        "KCC multinode Ishikari hardfork test",
 		Description: "",
 	}
 	suite.Add(hivesim.TestSpec{
@@ -56,11 +56,11 @@ func multiNodesHardFork(t *hivesim.T) {
 			// epoch : 5
 			"HIVE_KCC_POSA_EPOCH": "5",
 			// initial valiators
-			"HIVE_KCC_POSA_V2_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379,0xa885d3767358B3ad7A5aD9dA5d4508580b1D2480,0x2fE42368F0b91f87f5bfab781Cb89520F3ec78aC",
+			"HIVE_KCC_POSA_ISHIKARI_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379,0xa885d3767358B3ad7A5aD9dA5d4508580b1D2480,0x2fE42368F0b91f87f5bfab781Cb89520F3ec78aC",
 			// admin
 			"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
-			// kcc-v2 fork number
-			"HIVE_FORK_KCC_V2": "9",
+			// KCC Ishikari  fork number
+			"HIVE_FORK_KCC_ISHIKARI": "9",
 			// sync mode
 			"HIVE_NODETYPE": "full",
 		}, hivesim.WithStaticFiles(

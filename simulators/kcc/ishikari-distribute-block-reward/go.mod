@@ -1,4 +1,4 @@
-module github.com/ethereum/hive/simulators/kcc/punishment
+module github.com/ethereum/hive/simulators/kcc/ishikari-distribute-block-reward
 
 go 1.16
 

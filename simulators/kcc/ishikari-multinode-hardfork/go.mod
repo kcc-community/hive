@@ -1,7 +1,6 @@
-module github.com/ethereum/hive/simulators/kcc/smoke-v2-hardfork
+module github.com/ethereum/hive/simulators/kcc/ishikari-multinode-hardfork
 
 go 1.17
-
 require github.com/ethereum/hive v0.0.0-20220202142700-64e211a795ba
 
 require (

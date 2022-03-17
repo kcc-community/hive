@@ -9,10 +9,10 @@ hive --sim kcc --client kcc,kcc_v1.0.3
 available cases:  
 
 - [A general smoke test](simulators/kcc/smoke/main.go)  
-- [kcc-v2: hardfork test with a single node](simulators/kcc/v2-singlenode-hardfork/main.go)  
-- [kcc-v2: hardfork test between multiple nodes](simulators/kcc/v2-multinode-hardfork/main.go)  
-- [kcc-v2: distribute block reward](simulators/kcc/v2-distribute-block-reward/main.go)    
-- [kcc-v2: punishment](simulators/kcc/v2-punishment/main.go)   
+- [Ishikari hardfork: hardfork test with a single node](simulators/kcc/ishikari-singlenode-hardfork/main.go)  
+- [Ishikari hardfork: hardfork test between multiple nodes](simulators/kcc/ishikari-multinode-hardfork/main.go)  
+- [Ishikari hardfork: distribute block reward](simulators/kcc/ishikari-distribute-block-reward/main.go)    
+- [Ishikari hardfork: punishment](simulators/kcc/ishikari-punishment/main.go)   
 - [kcc-issue-9: failure on synchronization due to CVE-2021-39137](simulators/kcc/issues/issue-9/main.go)  
 
 

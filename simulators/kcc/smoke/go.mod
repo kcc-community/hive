@@ -1,4 +1,4 @@
-module github.com/ethereum/hive/simulators/kcc/v2-smoke
+module github.com/ethereum/hive/simulators/kcc/smoke
 
 go 1.17
 
