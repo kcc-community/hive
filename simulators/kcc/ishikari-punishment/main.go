@@ -216,15 +216,15 @@ func MultiNodesPunishment(t *hivesim.T) {
 			"HIVE_MINER":             strings.TrimPrefix(v.miner, "0x"),
 			"HIVE_CHAIN_ID":          "321",
 			// block interval: 1s
-			"HIVE_KCC_POSA_BLOCK_INTERVAL": "3",
-			// epoch : 5
-			"HIVE_KCC_POSA_EPOCH": "5",
+			"HIVE_KCC_POSA_BLOCK_INTERVAL": "1",
+			// epoch : 30
+			"HIVE_KCC_POSA_EPOCH": "30",
 			// initial valiators
 			"HIVE_KCC_POSA_ISHIKARI_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379,0xa885d3767358B3ad7A5aD9dA5d4508580b1D2480,0x2fE42368F0b91f87f5bfab781Cb89520F3ec78aC",
 			// admin
 			"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
 			// KCC Ishikari  fork number
-			"HIVE_FORK_KCC_ISHIKARI": "9",
+			"HIVE_FORK_KCC_ISHIKARI": "29",
 			// sync mode
 			"HIVE_NODETYPE": "archive",
 		}, hivesim.WithStaticFiles(
@@ -274,7 +274,7 @@ func MultiNodesPunishment(t *hivesim.T) {
 			return
 		}
 
-		if number < 9 {
+		if number < 29 {
 			t.Logf("current Block number is #%v", number)
 			time.Sleep(time.Second)
 			continue
