@@ -64,17 +64,29 @@ Perform a forkchoiceUpdated call with an unknown (random) SafeBlockHash, the cli
 - Unknown FinalizedBlockHash:  
 Perform a forkchoiceUpdated call with an unknown (random) FinalizedBlockHash, the client should throw an error.
 
+- Invalid Payload Attributes:
+Perform a forkchoiceUpdated call with valid forkchoice but invalid payload attributes.
+Expected outcome is that the forkchoiceUpdate proceeds, but the call returns an error.
+
 - Pre-TTD Block Hash:  
 Perform a forkchoiceUpdated call using a block hash part of the canonical chain that precedes the block where the TTD occurred. (Behavior is undefined for this edge case and not verified, but should not produce unrecoverable error)
 
 - Bad blockhash on NewPayload:  
-Send a NewPayload directive to the client including an incorrect BlockHash, should result in an error.
+Send a NewPayload directive to the client including an incorrect BlockHash, should result in an error in all the following cases:
+   - NewPayload while not syncing, on canonical chain
+   - NewPayload while not syncing, on side chain
+   - NewPayload while syncing, on canonical chain
+   - NewPayload while syncing, on side chain
 
 - ParentHash==BlockHash on NewPayload:  
 Send a NewPayload directive to the client including ParentHash that is equal to the BlockHash (Incorrect hash).
 
 - Invalid Field in NewPayload:  
-Modify fields of the ExecutablePayload while maintaining a valid BlockHash, including:
+Send an invalid payload in NewPayload by modifying fields of a valid ExecutablePayload while maintaining a valid BlockHash.
+After attempting to NewPayload/ForkchoiceUpdated the invalid payload, also attempt to send a valid payload that contains the previously modified invalid payload as parent (should also fail).
+Test also has variants with a missing parent payload (client is syncing):
+I.e. Skip sending NewPayload to the client, but send the ForkchoiceUpdated to this missing payload, which will send the client to Syncing, then send the invalid payload.
+Modify fields including:
    - ParentHash
    - StateRoot
    - ReceiptsRoot
@@ -82,6 +94,14 @@ Modify fields of the ExecutablePayload while maintaining a valid BlockHash, incl
    - GasLimit
    - GasUsed
    - Timestamp
+   - PrevRandao
+   - Removing a Transaction
+   - Transaction with incorrect fields:
+      - Signature
+      - Nonce
+      - GasPrice
+      - Gas
+      - Value
 
 ### Eth RPC Status on ForkchoiceUpdated Events:
 - Latest Block after NewPayload:  
@@ -97,7 +117,7 @@ Verify the Block returned by the Eth RPC after a new SafeBlockHash is set using 
 Verify the Block returned by the Eth RPC after a new FinalizedBlockHash is set using forkchoiceUpdated. Eth RPC should return new block.
 
 - Latest Block after Reorg:  
-Verify the Block returned by the Eth RPC after a forkchoiceUpdated reorgs HeadBlockHash/SafeBlockHash to their previous value. Eth RPC should return previous block.
+Verify the Block returned by the Eth RPC after a forkchoiceUpdated reorgs HeadBlockHash/SafeBlockHash to a sidechain and back. Eth RPC should return the appropriate block everytime.
 
 ### Payload Execution
 - Re-Execute Payload:  
@@ -111,22 +131,28 @@ Launch a first client and produce N payloads.
 Launch a second client and send payloads (NewPayload) in reverse order (N, N - 1, ..., 1).  
 The payloads should be ACCEPTED/SYNCING, and the last payload should be VALID (since payload 1 successfully links the chain with the Genesis).
 
-### Transaction Reorg using Engine API
+- Valid NewPayload->ForkchoiceUpdated on Syncing Client:
+Skip sending NewPayload to the client, but send the ForkchoiceUpdated to this missing payload, which will send the client to Syncing, then send the valid payload. Response should be either `ACCEPTED` or `SYNCING`.
+
+### Re-org using Engine API
 - Transaction Reorg using ForkchoiceUpdated:  
-Send transactions that modify the state tree after the PoS switch and verify that the modifications are correctly rolled back when a ForkchoiceUpdated event occurs with a block older than the block where the transaction was included.
+Send transactions that modify the state tree after the PoS switch and verify that the modifications are correctly rolled back when a ForkchoiceUpdated event occurs with a block on a different chain than the block where the transaction was included.
 
 - Sidechain Reorg:  
 Send a transaction that modifies the state, ForkchoiceUpdate to the payload containing this transaction. Then send an alternative payload, that produces a different state with the same transaction, and use ForkchoiceUpdated to change into this sidechain.
+
+- Re-Org Back into Canonical Chain:  
+Test that performing a re-org back into a previous block of the canonical chain does not produce errors and the chain is still capable of progressing.
 
 ### Suggested Fee Recipient in Payload creation
 - Suggested Fee Recipient Test:  
 Set the fee recipient to a custom address and verify that (a) balance is not increased when no fees are collected (b) balance is increased appropriately when fees are collected.
 
-### Random Opcode:
-- Random Opcode Transactions:  
+### PrevRandao Opcode:
+- PrevRandao Opcode Transactions:  
 Send transactions that modify the state to the value of the 'DIFFICULTY' opcode and verify that:  
 (a) the state is equal to the difficulty on blocks before the TTD is crossed  
-(b) the state is equal to the Random value provided using forkchoiceUpdated after PoS transition.  
+(b) the state is equal to the PrevRandao value provided using forkchoiceUpdated after PoS transition.  
 
 ### Sync Tests:
 - Sync Client Post Merge:  
@@ -183,3 +209,37 @@ Verification is made that Client 1 Re-orgs to chain G -> B -> C.
  Client 1 starts with chain G -> A, Client 2 starts with chain G -> A -> B.  
  Block A reaches TTD, but Client 2 has a higher TTD and accepts block B (simulating a client not complying with the merge).  
  Verification is made that Client 1 does not follow Client 2 chain to block B.  
+
+- Long PoW Chain Sync:
+Client 1 starts with chain G -> PoW1, Client 2 starts with chain G -> PoW1 -> ... -> PoW1024.
+Block PoW1024 reaches TTD, and the CL Mock continues the PoS chain on top of this block.
+Verification is made that Client 1 syncs the remaining PoW blocks and also the PoS chain built on top of PoW1024.
+
+## JWT Authentication Tests:
+- No time drift, correct secret:  
+Engine API call where the `iat` claim contains no time drift, and the secret to calculate the token is correct.
+No error is expected.
+
+- No time drift, incorrect secret (shorter):  
+Engine API call where the `iat` claim contains no time drift, but the secret to calculate the token is incorrectly shorter.
+Invalid token error is expected.
+
+- No time drift, incorrect secret (longer):  
+Engine API call where the `iat` claim contains no time drift, but the secret to calculate the token is incorrectly longer.
+Invalid token error is expected.
+
+- Negative time drift, exceeding limit, correct secret:  
+Engine API call where the `iat` claim contains a negative time drift greater than the maximum threshold, but the secret to calculate the token is correct.
+Invalid token error is expected.
+
+- Negative time drift, within limit, correct secret:  
+Engine API call where the `iat` claim contains a negative time drift smaller than the maximum threshold, and the secret to calculate the token is correct.
+No error is expected.
+
+- Positive time drift, exceeding limit, correct secret:  
+Engine API call where the `iat` claim contains a positive time drift greater than the maximum threshold, but the secret to calculate the token is correct.
+Invalid token error is expected.
+
+- Positive time drift, within limit, correct secret:  
+Engine API call where the `iat` claim contains a positive time drift smaller than the maximum threshold, and the secret to calculate the token is correct.
+No error is expected.

@@ -25,11 +25,14 @@ var (
 type TestEnv struct {
 	*hivesim.T
 	TestName string
+	Client   *hivesim.Client
 
 	// RPC Clients
-	RPC    *rpc.Client
-	Eth    *ethclient.Client
-	Engine *EngineClient
+	RPC        *rpc.Client
+	Eth        *ethclient.Client
+	Engine     *EngineClient
+	TestEngine *TestEngineClient
+	TestEth    *TestEthClient
 
 	// Consensus Layer Mocker Instance
 	CLMock *CLMocker
@@ -76,11 +79,12 @@ func RunTest(testName string, ttd *big.Int, timeout time.Duration, t *hivesim.T,
 	ec := NewEngineClient(t, c, ttd)
 	defer ec.Close()
 
-	rpcClient, _ := rpc.DialHTTPWithClient(fmt.Sprintf("http://%v:8545/", c.IP), client)
+	rpcClient, _ := rpc.DialHTTPWithClient(fmt.Sprintf("http://%v:%v/", c.IP, EthPortHTTP), client)
 	defer rpcClient.Close()
 	env := &TestEnv{
 		T:            t,
 		TestName:     testName,
+		Client:       c,
 		RPC:          rpcClient,
 		Eth:          ethclient.NewClient(rpcClient),
 		Engine:       ec,
@@ -88,6 +92,8 @@ func RunTest(testName string, ttd *big.Int, timeout time.Duration, t *hivesim.T,
 		ClientParams: cParams,
 		ClientFiles:  cFiles,
 	}
+	env.TestEngine = NewTestEngineClient(env, ec)
+	env.TestEth = NewTestEthClient(env, env.Eth)
 
 	// Defer closing the last context
 	defer func() {
@@ -127,8 +133,8 @@ func (t *TestEnv) MainTTD() *big.Int {
 	return t.Engine.TerminalTotalDifficulty
 }
 
-func (t *TestEnv) StartClient(clientDef *hivesim.ClientDefinition, params hivesim.Params, ttd *big.Int) (*hivesim.Client, *EngineClient, error) {
-	c := t.T.StartClient(clientDef.Name, params, hivesim.WithStaticFiles(t.ClientFiles))
+func (t *TestEnv) StartClient(clientType string, params hivesim.Params, ttd *big.Int) (*hivesim.Client, *EngineClient, error) {
+	c := t.T.StartClient(clientType, params, hivesim.WithStaticFiles(t.ClientFiles))
 	ec := NewEngineClient(t.T, c, ttd)
 	return c, ec, nil
 }
@@ -145,6 +151,21 @@ func (t *TestEnv) makeNextTransaction(recipient common.Address, amount *big.Int,
 	}
 	t.nonce++
 	return signedTx
+}
+
+func (t *TestEnv) sendNextTransaction(sender *EngineClient, recipient common.Address, amount *big.Int, payload []byte) *types.Transaction {
+	tx := t.makeNextTransaction(recipient, amount, payload)
+	for {
+		err := sender.Eth.SendTransaction(sender.Ctx(), tx)
+		if err == nil {
+			return tx
+		}
+		select {
+		case <-time.After(time.Second):
+		case <-t.Timeout:
+			t.Fatalf("FAIL (%s): Timeout while trying to send transaction: %v", t.TestName, err)
+		}
+	}
 }
 
 // CallContext is a helper method that forwards a raw RPC request to
