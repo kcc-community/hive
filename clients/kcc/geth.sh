@@ -136,6 +136,15 @@ fi
 
 FLAGS="$FLAGS --miner.gasprice 1000000000" # 1gwei
 
+
+# Add Gas Block Limit Configuration 
+if [ "$HIVE_GAS_TARGET" != "" ]; then 
+    FLAGS="$FLAGS --miner.gastarget $HIVE_GAS_TARGET"  
+fi 
+if [ "$HIVE_GAS_LIMIT" != "" ]; then 
+    FLAGS="$FLAGS --miner.gaslimit $HIVE_GAS_LIMIT"  
+fi 
+
 # Configure LES.
 if [ "$HIVE_LES_SERVER" == "1" ]; then
   FLAGS="$FLAGS --light.serve 50 --light.nosyncserve"
