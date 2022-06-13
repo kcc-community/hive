@@ -59,5 +59,6 @@ def to_strings:
     "cve_2021_39137Block":env.HIVE_CVE_2021_39137_BLOCK|to_int,
     "londonBlock": env.HIVE_FORK_LONDON|to_int,
     "ishikariBlock": env.HIVE_FORK_KCC_ISHIKARI| to_int,
+    "ishikariPatch001Block": env.HIVE_FORK_KCC_ISHIKARI_PATCH001| to_int,
   }|remove_empty
 }
