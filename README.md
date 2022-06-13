@@ -1,3 +1,32 @@
+# hive-kcc: a fork of ethereum hive with cases for KCC 
+
+Run all available integration test cases against kcc:  
+
+```
+hive --sim kcc --client kcc,kcc_v1.0.3
+```
+
+available cases:  
+
+- [A general smoke test](simulators/kcc/smoke/main.go)  
+- [Ishikari hardfork: hardfork test with a single node](simulators/kcc/ishikari-singlenode-hardfork/main.go)  
+- [Ishikari hardfork: hardfork test between multiple nodes](simulators/kcc/ishikari-multinode-hardfork/main.go)  
+- [Ishikari hardfork: distribute block reward](simulators/kcc/ishikari-distribute-block-reward/main.go)    
+- [Ishikari hardfork: punishment](simulators/kcc/ishikari-punishment/main.go)   
+- [kcc-issue-9: failure on synchronization due to CVE-2021-39137](simulators/kcc/issues/issue-9/main.go)  
+
+
+Why do we need to specify two different versions of clients?  
+
+- kcc should be the latest version of kcc 
+- kcc v1.0.3 is a reference client for testing a synchronization issue([kcc-issue-9](simulators/kcc/issues/issue-9/main.go))
+
+
+---
+---
+---
+---
+
 # hive - Ethereum end-to-end test harness
 
 Hive is a system for running integration tests against Ethereum clients.
