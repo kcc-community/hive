@@ -1,0 +1,9 @@
+name: docker-test
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: 
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ps aux 
+      - run: docker ps -a 
