@@ -1,0 +1,18 @@
+name: sample-run-hive-test-case-in-github-actions 
+run-name: Running a case from hive.. 🚀
+on: workflow_dispatch
+jobs:
+  run-hive-case:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.18.0'
+      - name: Build Hive 
+        run: go build -v . 
+      - name: Run the smoke test from KCC 
+        run: ./hive --client kcc_v1.2.0 --sim kcc/smoke --docker.output
+          

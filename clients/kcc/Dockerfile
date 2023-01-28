@@ -5,7 +5,7 @@
 # needing to constantly rebuild.
 
 ARG branch=latest
-FROM  kcc-community/kcc:$branch
+FROM  kucoincommunitychain/kcc:$branch
 
 RUN apk add --update bash curl jq
 

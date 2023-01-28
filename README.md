@@ -14,6 +14,7 @@ available cases:
 - [Ishikari hardfork: distribute block reward](simulators/kcc/ishikari-distribute-block-reward/main.go)    
 - [Ishikari hardfork: punishment](simulators/kcc/ishikari-punishment/main.go)   
 - [kcc-issue-9: failure on synchronization due to CVE-2021-39137](simulators/kcc/issues/issue-9/main.go)  
+- [Ishikari hardfork: An inactive validator becomes active after voting for it](README.md)   
 
 
 Why do we need to specify two different versions of clients?  

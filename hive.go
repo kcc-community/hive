@@ -36,6 +36,7 @@ func main() {
 		simLogLevel           = flag.Int("sim.loglevel", 3, "Selects log `level` of client instances. Supports values 0-5.")
 		simDevMode            = flag.Bool("dev", false, "Only starts the simulator API endpoint (listening at 127.0.0.1:3000 by default) without starting any simulators.")
 		simDevModeAPIEndpoint = flag.String("dev.addr", "127.0.0.1:3000", "Endpoint that the simulator API listens on")
+		panicOnFailure        = flag.Bool("panic", false, "Panic on test failure instead of exiting with a non-zero exit code.")
 
 		clients = flag.String("client", "kcc_latest", "Comma separated `list` of clients to use. Client names in the list may be given as\n"+
 			"just the client name, or a client_branch specifier. If a branch name is supplied,\n"+
@@ -112,6 +113,7 @@ func main() {
 			ClientStartTimeout: *clientTimeout,
 		},
 		SimDurationLimit: *simTimeLimit,
+		panicOnFailure:   *panicOnFailure,
 	}
 	clientList := splitAndTrim(*clients, ",")
 	if err := runner.initClients(ctx, clientList); err != nil {
@@ -142,6 +144,9 @@ type simRunner struct {
 
 	// This is the time limit for a single simulation run.
 	SimDurationLimit time.Duration
+
+	// panicOnFailure is true if the simulator should panic on test failure.
+	panicOnFailure bool
 }
 
 // initClients builds client images.
@@ -312,8 +317,18 @@ func (r *simRunner) run(ctx context.Context, sim string) error {
 	// Wait for simulation to end.
 	select {
 	case <-done:
+		// Panic if any of the test cases failed.
+		for _, suit := range tm.Results() {
+			for _, test := range suit.TestCases {
+				if !test.SummaryResult.Pass {
+					slogger.Error("simulation failed", "suit", suit.Name, "test", test.Name)
+					return errors.New("simulation failed")
+				}
+			}
+		}
 	case <-timeout:
 		slogger.Info("simulation timed out")
+		return errors.New("simulation timed out")
 	case <-ctx.Done():
 		slogger.Info("interrupted, shutting down")
 		return errors.New("simulation interrupted")

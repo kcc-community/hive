@@ -120,6 +120,7 @@ set -e
 if [ "$HIVE_CLIQUE_PRIVATEKEY" != "" ]; then
     # Create password file.
     echo "Importing clique key..."
+    echo "the private key is $HIVE_CLIQUE_PRIVATEKEY"
     echo "secret" > /geth-password-file.txt
     $geth --nousb account import --password /geth-password-file.txt <(echo "$HIVE_CLIQUE_PRIVATEKEY")
 

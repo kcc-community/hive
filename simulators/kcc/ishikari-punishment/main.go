@@ -10,6 +10,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/hive/simulators/kcc/ishikari-punishment/punish"
 	"github.com/ethereum/hive/simulators/kcc/ishikari-punishment/reservepool"
 	"github.com/ethereum/hive/simulators/kcc/ishikari-punishment/validators"
 
@@ -91,6 +92,8 @@ func punishRewards(t *hivesim.T) {
 			"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
 			// KCC Ishikari  fork number
 			"HIVE_FORK_KCC_ISHIKARI": "9",
+			// KCC Ishikari Patch001 fork number
+			"HIVE_FORK_KCC_ISHIKARI_PATCH001": "9",
 			// sync mode
 			"HIVE_NODETYPE": "archive",
 		}, hivesim.WithStaticFiles(
@@ -153,7 +156,6 @@ func punishRewards(t *hivesim.T) {
 	reservePool, err := reservepool.NewReservepool(ReservePoolAddress, ethClient)
 	if err != nil {
 		t.Fatalf("failed to create reservesPool: %v", err)
-		return
 	}
 
 	privateKey, err := crypto.HexToECDSA("9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c")
@@ -225,6 +227,10 @@ func MultiNodesPunishment(t *hivesim.T) {
 			"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
 			// KCC Ishikari  fork number
 			"HIVE_FORK_KCC_ISHIKARI": "29",
+			// KCC Ishikari Patch001 fork number
+			"HIVE_FORK_KCC_ISHIKARI_PATCH001": "29",
+			// KCC Ishikari Patch002 fork number
+			"HIVE_FORK_KCC_ISHIKARI_PATCH002": "29",
 			// sync mode
 			"HIVE_NODETYPE": "archive",
 		}, hivesim.WithStaticFiles(
@@ -274,7 +280,8 @@ func MultiNodesPunishment(t *hivesim.T) {
 			return
 		}
 
-		if number < 29 {
+		// wait for more blocks to be confirmed
+		if number <= 40 {
 			t.Logf("current Block number is #%v", number)
 			time.Sleep(time.Second)
 			continue
@@ -286,6 +293,11 @@ func MultiNodesPunishment(t *hivesim.T) {
 	if err != nil {
 		t.Fatalf("failed to new validator, err: %+v", err)
 		return
+	}
+
+	punishContract, err := punish.NewPunish(PunishAddress, ethClient)
+	if err != nil {
+		t.Fatalf("failed to create punishContract: %v", err)
 	}
 
 	address := common.HexToAddress("0x147B8eb97fD247D06C4006D269c90C1908Fb5D54")
@@ -302,22 +314,6 @@ func MultiNodesPunishment(t *hivesim.T) {
 	for i := range beforeValidatorsSlice {
 		t.Logf("GetActiveValidators: %+v\n", beforeValidatorsSlice[i])
 	}
-
-	// Notes: will to get error: no contract code at given address, when call GetTopValidators at height less than 9
-	top, err := validatorCli.GetTopValidators(&bind.CallOpts{
-		Pending:     false,
-		From:        address,
-		BlockNumber: big.NewInt(9),
-		Context:     nil,
-	})
-	if err != nil {
-		t.Logf("failed to get top validators, err: %+v\n", err)
-		return
-	}
-	t.Logf("top validators length: %+v at height: %d\n", len(top), 9)
-
-	t.Logf("...waiting 10 seconds...")
-	time.Sleep(time.Second * 10)
 
 	h, _ := ethClient.BlockNumber(context.TODO())
 	t.Logf("ready to stop a client: %+v at height: %d to simulate punish a validator...", vals[2].miner, h)
@@ -354,6 +350,17 @@ func MultiNodesPunishment(t *hivesim.T) {
 			t.Logf("failed to get active validators, err: %+v\n", err)
 			return
 		}
+
+		// Check the punish record of each validator
+		t.Logf("Punish Record of each validators")
+		for _, currVal := range vals {
+			counts, err := punishContract.GetPunishRecord(&bind.CallOpts{}, common.HexToAddress(currVal.miner))
+			if err != nil {
+				t.Fatalf("failed to get punish record from punishContract: %v", err)
+			}
+			t.Logf("%v: %v", currVal.miner, counts.String())
+		}
+
 		if len(afterValidatorsSlice) < 3 {
 			times++
 			t.Logf("## only %d validators are still working, confirmed times: %d\n", len(afterValidatorsSlice), times)
@@ -368,7 +375,7 @@ func MultiNodesPunishment(t *hivesim.T) {
 		}
 	}
 
-	top, err = validatorCli.GetTopValidators(&bind.CallOpts{
+	top, err := validatorCli.GetTopValidators(&bind.CallOpts{
 		Pending:     false,
 		From:        address,
 		BlockNumber: nil,

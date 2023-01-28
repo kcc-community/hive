@@ -55,6 +55,10 @@ func distributeBlockRewardTest(t *hivesim.T) {
 		"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
 		// KCC Ishikari fork number
 		"HIVE_FORK_KCC_ISHIKARI": "9",
+		// KCC Ishikari Patch001 fork number
+		"HIVE_FORK_KCC_ISHIKARI_PATCH001": "9",
+		// KCC Ishikari Patch002 fork number
+		"HIVE_FORK_KCC_ISHIKARI_PATCH002": "9",
 		// sync mode
 		"HIVE_NODETYPE": "archive",
 	}, hivesim.WithStaticFiles(

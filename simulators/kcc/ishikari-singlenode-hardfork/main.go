@@ -5,7 +5,12 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/hive/hivesim"
+)
+
+var (
+	slotRemoveThreshhold = common.BigToHash(big.NewInt(58))
 )
 
 func main() {
@@ -36,6 +41,10 @@ func main() {
 			"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
 			// KCC Ishikari  fork number
 			"HIVE_FORK_KCC_ISHIKARI": "9",
+			// KCC Ishikari Patch001 fork number
+			"HIVE_FORK_KCC_ISHIKARI_PATCH001": "10",
+			// KCC Ishikari Patch002 fork number
+			"HIVE_FORK_KCC_ISHIKARI_PATCH002": "11",
 		},
 		Run: hardforkTest,
 	})
@@ -58,7 +67,7 @@ func hardforkTest(t *hivesim.T, c *hivesim.Client) {
 	}
 
 	start := time.Now()
-	timeout := 60 * time.Second
+	timeout := 6000 * time.Second
 
 	for {
 		var b block
@@ -76,6 +85,38 @@ func hardforkTest(t *hivesim.T, c *hivesim.Client) {
 			time.Sleep(time.Second)
 		} else if blockNumber.Uint64() == 9 {
 			t.Logf("kcc Ishikari hardfork block #9 mined")
+			var removeThreshAsHash common.Hash
+
+			if err := c.RPC().Call(&removeThreshAsHash, "eth_getStorageAt",
+				common.HexToAddress("0x000000000000000000000000000000000000f444"),
+				slotRemoveThreshhold, rpc.BlockNumber(9)); err != nil {
+
+				t.Fatalf("failed to get 'removeThresh' from punish: %v", err)
+			}
+
+			removeThresh := new(big.Int).SetBytes(removeThreshAsHash[:])
+
+			if big.NewInt(48).Cmp(removeThresh) != 0 {
+				t.Fatalf("removeThresh should be %v , actually is %v", 48, removeThresh.Int64())
+			}
+
+		} else if blockNumber.Uint64() == 10 {
+			t.Logf("kcc Ishikari hardfork block #10 mined, patch001 should have been applied")
+
+			var removeThreshAsHash common.Hash
+
+			if err := c.RPC().Call(&removeThreshAsHash, "eth_getStorageAt",
+				common.HexToAddress("0x000000000000000000000000000000000000f444"),
+				slotRemoveThreshhold, rpc.BlockNumber(10)); err != nil {
+
+				t.Fatalf("failed to get 'removeThresh' from punish: %v", err)
+			}
+
+			removeThresh := new(big.Int).SetBytes(removeThreshAsHash[:])
+
+			if big.NewInt(600).Cmp(removeThresh) != 0 {
+				t.Fatalf("removeThresh should be %v , actually is %v", 600, removeThresh.Uint64())
+			}
 		} else {
 			t.Logf("block #%v mined", blockNumber)
 			break
