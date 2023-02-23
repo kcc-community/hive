@@ -116,6 +116,16 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 		},
 	}
 
+	wants := []common.Hash{
+		common.HexToHash("0x1b0aa90aed807b772193f7200cfba272972a730fa70c8d19fc7d7438096fdbdd"),
+		common.HexToHash("0xb2eaf381f63cdc2bddb62816558fafa9e40d0ba1328a4be5fc889b54a3f8324c"),
+		common.HexToHash("0xad5118ff07ed360437dc3eee7ff76a62fcb03d9af9e204149f8aee7863d9ab54"),
+		common.HexToHash("0x2affb932d441e398725f3c56b84738cbb5f75d2a13c3f3cb128882285c30537d"),
+		common.HexToHash("0x130c83b212d528fce4d9033908374ebe69b4a8594095e2fb707d50eb9b1df6fa"),
+		common.HexToHash("0x63b5feb7418de43bf2e4c886b7be1c079fbfa36763c7fb3c4435f30192f2c4fb"),
+		common.HexToHash("0x1d020a72c02195408a711f4dc47ca7effde8fd1dfd080de8525c0833dd311a09"),
+	}
+
 	client := ethclient.NewClient(c.RPC())
 	var latestTx *types.Transaction
 	for _, account := range accounts {
@@ -123,11 +133,6 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 		if err != nil {
 			t.Fatal("account1 HexToECDSA err:", err)
 		}
-
-		//privateKey2, err := crypto.HexToECDSA(accounts[1].privateKey)
-		//if err != nil {
-		//	t.Fatal("account2 HexToECDSA err:", err)
-		//}
 
 		for _, legacyTx := range account.txs {
 			t.Log("transaction:", legacyTx)
@@ -177,9 +182,16 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 	}
 
 	transactions := blockInfo.Transactions()
-	for _, transaction := range transactions {
+	for index, transaction := range transactions {
 		tx, _ := transaction.MarshalJSON()
 		t.Log("transaction:", string(tx))
+
+		if index+1 > len(wants) {
+			t.Fatal("transaction fatal")
+		}
+		if wants[index] != transaction.Hash() {
+			t.Fatal("transaction sort fatal", transaction.Hash().String(), "want:", wants[index])
+		}
 	}
 }
 
