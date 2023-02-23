@@ -75,7 +75,7 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 					Data:     nil,
 				},
 				{
-					Nonce:    uint64(2),
+					Nonce:    uint64(3),
 					GasPrice: big.NewInt(1.2 * 1e9),
 					Gas:      8 * 1e5,
 					To:       &address1,
