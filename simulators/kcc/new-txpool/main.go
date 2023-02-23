@@ -43,17 +43,32 @@ type account struct {
 func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 	signer := types.LatestSignerForChainID(big.NewInt(321))
 
-	address1 := common.HexToAddress("0x658bdf435d810c91414ec09147daa6db62406379")
+	//address1 := common.HexToAddress("0x658bdf435d810c91414ec09147daa6db62406379")
+	address2 := common.HexToAddress("0x7B42a4573ECb800bD404042F518a59CfBE3b582B")
 	accounts := []*account{
+		//{
+		//	privateKey: "9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c",
+		//	address:    address1.String(),
+		//	txs: []*types.LegacyTx{
+		//		{
+		//			Nonce:    uint64(0),
+		//			GasPrice: big.NewInt(1e9),
+		//			Gas:      8 * 1e5,
+		//			To:       &address1,
+		//			Value:    big.NewInt(0),
+		//			Data:     nil,
+		//		},
+		//	},
+		//},
 		{
-			privateKey: "9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c",
-			address:    address1.String(),
+			privateKey: "7d38039b2367def23d26b092ee66a5c2c2c9be4972ba05ca326f71f8c783f44a",
+			address:    address2.String(),
 			txs: []*types.LegacyTx{
 				{
 					Nonce:    uint64(0),
 					GasPrice: big.NewInt(1e9),
 					Gas:      8 * 1e5,
-					To:       &address1,
+					To:       &address2,
 					Value:    big.NewInt(0),
 					Data:     nil,
 				},
@@ -88,14 +103,14 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 
 	var blockHash *common.Hash
 	for i := 0; i < 10; i++ {
-		var json *rpcTransaction
-		err = c.RPC().Call(&json, "eth_getTransactionByHash", tx.Hash().String())
+		var transaction *rpcTransaction
+		err = c.RPC().Call(&transaction, "eth_getTransactionByHash", tx.Hash().String())
 		if err != nil {
 			t.Fatal("account1 call eth_getTransactionByHash err:", err)
 		}
 
-		if json.BlockHash != nil {
-			blockHash = json.BlockHash
+		if transaction.BlockHash != nil {
+			blockHash = transaction.BlockHash
 			break
 		}
 
