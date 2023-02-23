@@ -1,4 +1,4 @@
-module github.com/ethereum/hive/simulators/kcc/smoke
+module github.com/ethereum/hive/simulators/kcc/new-txpool
 
 go 1.17
 
