@@ -117,7 +117,7 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 	}
 
 	client := ethclient.NewClient(c.RPC())
-	var tx *types.Transaction
+	var latestTx *types.Transaction
 	for _, account := range accounts {
 		privateKey, err := crypto.HexToECDSA(account.privateKey)
 		if err != nil {
@@ -142,6 +142,8 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 			}
 
 			t.Log("txID:", tx.Hash().String())
+
+			latestTx = tx
 		}
 
 	}
@@ -149,7 +151,7 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 	var blockHash *common.Hash
 	for i := 0; i < 10; i++ {
 		var transaction *rpcTransaction
-		err := c.RPC().Call(&transaction, "eth_getTransactionByHash", tx.Hash().String())
+		err := c.RPC().Call(&transaction, "eth_getTransactionByHash", latestTx.Hash().String())
 		if err != nil {
 			t.Fatal("account1 call eth_getTransactionByHash err:", err)
 		}
@@ -159,12 +161,12 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 			break
 		}
 
-		t.Log("block not confirm request after 1s:", tx.Hash().String())
+		t.Log("block not confirm request after 1s:", latestTx.Hash().String())
 		time.Sleep(time.Second)
 	}
 
 	if blockHash == nil {
-		t.Fatal("block not confirm after 10s", tx.Hash().String())
+		t.Fatal("block not confirm after 10s", latestTx.Hash().String())
 	}
 
 	t.Log("block hash:", blockHash)
