@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/hive/hivesim"
 	"math/big"
+	"strconv"
 	"time"
 )
 
@@ -30,6 +31,21 @@ func main() {
 			"HIVE_CLIQUE_PRIVATEKEY": "9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c",
 			"HIVE_MINER":             "658bdf435d810c91414ec09147daa6db62406379",
 			"HIVE_CHAIN_ID":          "321",
+
+			// block interval: 1s
+			"HIVE_KCC_POSA_BLOCK_INTERVAL": "1",
+			// epoch : 5
+			"HIVE_KCC_POSA_EPOCH": "5",
+			// initial valiators
+			"HIVE_KCC_POSA_ISHIKARI_INIT_VALIDATORS": "0x658bdf435d810c91414ec09147daa6db62406379",
+			// admin
+			"HIVE_KCC_POSA_ADMIN": "0x658bdf435d810c91414ec09147daa6db62406379",
+			// KCC Ishikari  fork number
+			"HIVE_FORK_KCC_ISHIKARI": "9",
+			// KCC Ishikari Patch001 fork number
+			"HIVE_FORK_KCC_ISHIKARI_PATCH001": "10",
+			// KCC Ishikari Patch002 fork number
+			"HIVE_FORK_KCC_ISHIKARI_PATCH002": "11",
 		},
 		Run: newTxPoolTest,
 	})
@@ -126,6 +142,36 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 		common.HexToHash("0x130c83b212d528fce4d9033908374ebe69b4a8594095e2fb707d50eb9b1df6fa"),
 		common.HexToHash("0x63b5feb7418de43bf2e4c886b7be1c079fbfa36763c7fb3c4435f30192f2c4fb"),
 		common.HexToHash("0x1d020a72c02195408a711f4dc47ca7effde8fd1dfd080de8525c0833dd311a09"),
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	defer cancel()
+
+	for {
+		var block struct {
+			Number     string `json:"number"`
+			Hash       string `json:"hash"`
+			ParentHash string `json:"parentHash"`
+		}
+
+		if err := c.RPC().CallContext(ctx, &block, "eth_getBlockByNumber", "latest", false); err != nil {
+			t.Fatalf("Failed to get latest block: %v", err)
+		}
+
+		num, err := strconv.ParseUint(block.Number[2:], 16, 64)
+		if err != nil {
+			t.Fatalf("Failed to get latest block: %v", err)
+		}
+
+		if num >= 11 {
+			break
+		}
+
+		select {
+		case <-ctx.Done():
+			t.Fatalf("Timeout when waiting for the hardfork block")
+		default:
+		}
 	}
 
 	client := ethclient.NewClient(c.RPC())
