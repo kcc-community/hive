@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/hive/hivesim"
 	"math/big"
 	"time"
@@ -128,6 +130,8 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 
 	client := ethclient.NewClient(c.RPC())
 	var latestTx *types.Transaction
+
+	bes := make([]rpc.BatchElem, 0, 7)
 	for _, account := range accounts {
 		privateKey, err := crypto.HexToECDSA(account.privateKey)
 		if err != nil {
@@ -141,16 +145,25 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 				t.Fatal("account0 signNewTx err:", err)
 			}
 
-			err = client.SendTransaction(context.Background(), tx)
+			data, err := tx.MarshalBinary()
 			if err != nil {
-				t.Fatal("account1 call eth_sendRawTransaction err:", err)
+				t.Fatal("MarshalBinary signNewTx err:", err)
 			}
 
-			t.Log("txID:", tx.Hash().String())
-
 			latestTx = tx
+			bes = append(bes, rpc.BatchElem{
+				Method: "eth_sendRawTransaction",
+				Args:   []interface{}{hexutil.Encode(data)},
+				Result: nil,
+				Error:  nil,
+			})
 		}
 
+	}
+
+	err := c.RPC().BatchCall(bes)
+	if err != nil {
+		t.Fatal("BatchCall err:", err)
 	}
 
 	var blockHash *common.Hash
