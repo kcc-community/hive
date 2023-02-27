@@ -97,6 +97,7 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	}
 
 	transactOpts.Nonce = big.NewInt(0)
+	transactOpts.GasLimit = 5e8
 	address, transaction, store, err := Store.DeployStore(transactOpts, rpc)
 	if err != nil {
 		t.Fatal("DeployStore err:", err)
