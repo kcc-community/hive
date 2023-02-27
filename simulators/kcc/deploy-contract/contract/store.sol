@@ -6,14 +6,9 @@ contract Store {
     mapping(bytes32 => bytes32) public items;
 
     function setItem(bytes32 key, bytes32 value) external {
-        items[key] = value;
-        emit ItemSet(key, value);
-    }
-
-    function burnMuchGas() external {
-        counter = 0;
-        for (uint i = 1; i < 100000; i++) {
-            counter++;
+        for (uint i = 1; i < 1000000; i++) {
+            items[key] = value;
         }
+        emit ItemSet(key, value);
     }
 }
