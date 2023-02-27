@@ -9,4 +9,11 @@ contract Store {
         items[key] = value;
         emit ItemSet(key, value);
     }
+
+    function burnMuchGas() external {
+        counter = 0;
+        for (uint i = 1; i < 100000; i++) {
+            counter++;
+        }
+    }
 }

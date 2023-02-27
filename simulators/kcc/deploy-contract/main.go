@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/hive/hivesim"
@@ -109,22 +111,26 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	txJson, _ = tx.MarshalJSON()
 	t.Log("SetItem transaction", string(txJson))
 
-	blockNumber, err := rpc.BlockNumber(context.Background())
-	if err != nil {
-		t.Fatal("getBlockNumber err:", err)
-	}
+	//var blockHash *common.Hash
 	for i := 0; i < 5; i++ {
-		newBlockNumber, err := rpc.BlockNumber(context.Background())
+
+		var transaction *rpcTransaction
+		err := c.RPC().Call(&transaction, "eth_getTransactionByHash", tx.Hash().String())
 		if err != nil {
-			t.Fatal("getBlockNumber err:", err)
+			t.Fatal("account1 call eth_getTransactionByHash err:", err)
 		}
 
-		if blockNumber > 0 && newBlockNumber > blockNumber+2 {
+		if transaction.BlockHash != nil {
+			//blockHash = transaction.BlockHash
 			break
 		}
-
-		time.Sleep(time.Second)
 	}
+
+	receipts, err := rpc.TransactionReceipt(context.Background(), tx.Hash())
+	if err != nil {
+		t.Fatal("account1 call eth_getBlockByHash err:", err)
+	}
+	t.Log("receipts,gas_used: ", receipts.GasUsed)
 
 	data, err := store.Items(nil, common.HexToHash("0x0"))
 	if err != nil {
@@ -136,4 +142,22 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	}
 
 	t.Log(data, common.HexToHash("0x1"))
+}
+
+type rpcTransaction struct {
+	tx *types.Transaction
+	txExtraInfo
+}
+
+type txExtraInfo struct {
+	BlockNumber *string         `json:"blockNumber,omitempty"`
+	BlockHash   *common.Hash    `json:"blockHash,omitempty"`
+	From        *common.Address `json:"from,omitempty"`
+}
+
+func (tx *rpcTransaction) UnmarshalJSON(msg []byte) error {
+	if err := json.Unmarshal(msg, &tx.tx); err != nil {
+		return err
+	}
+	return json.Unmarshal(msg, &tx.txExtraInfo)
 }
