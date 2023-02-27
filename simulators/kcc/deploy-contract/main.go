@@ -105,6 +105,7 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	txJson, _ := transaction.MarshalJSON()
 	t.Log("transaction", string(txJson), address.String())
 
+	time.Sleep(time.Second * 2)
 	transactOpts.Nonce = big.NewInt(1)
 	tx, err := store.SetItem(transactOpts, common.HexToHash("0x0"), common.HexToHash("0x1"))
 	if err != nil {
