@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -8,6 +9,7 @@ import (
 	"github.com/ethereum/hive/hivesim"
 	Store "github.com/ethereum/hive/simulators/kcc/deploy-contract/contract"
 	"math/big"
+	"time"
 )
 
 func main() {
@@ -75,10 +77,28 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	txJson, _ = tx.MarshalJSON()
 	t.Log("SetItem transaction", string(txJson))
 
-	opt := &bind.CallOpts{
-		From: address,
+	blockNumber, err := rpc.BlockNumber(context.Background())
+	if err != nil {
+		t.Fatal("getBlockNumber err:", err)
 	}
-	data, err := store.Items(opt, common.HexToHash("0x0"))
+	for i := 0; i < 5; i++ {
+		newBlockNumber, err := rpc.BlockNumber(context.Background())
+		if err != nil {
+			t.Fatal("getBlockNumber err:", err)
+		}
+
+		if blockNumber > 0 && newBlockNumber > blockNumber+2 {
+			break
+		}
+
+		time.Sleep(time.Second)
+	}
+
+	if blockNumber == 0 {
+		t.Fatal("fatal block number err:", blockNumber)
+	}
+
+	data, err := store.Items(nil, common.HexToHash("0x0"))
 	if err != nil {
 		t.Fatal("setItem err:", err)
 	}
