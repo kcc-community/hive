@@ -1,4 +1,4 @@
-module github.com/ethereum/hive/simulators/kcc/new-txpool
+module github.com/ethereum/hive/simulators/kcc/deploy-contract
 
 go 1.17
 

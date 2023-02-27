@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/hive/hivesim"
-	Store "github.com/ethereum/hive/simulators/kcc/new-txpool/contract"
+	Store "github.com/ethereum/hive/simulators/kcc/deploy-contract/contract"
 	"math/big"
 )
 
