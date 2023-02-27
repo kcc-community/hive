@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/hive/hivesim"
 	Store "github.com/ethereum/hive/simulators/kcc/deploy-contract/contract"
 	"math/big"
+	"strconv"
 	"time"
 )
 
@@ -50,6 +51,37 @@ func main() {
 }
 
 func deployContract(t *hivesim.T, c *hivesim.Client) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	defer cancel()
+
+	for {
+		var block struct {
+			Number     string `json:"number"`
+			Hash       string `json:"hash"`
+			ParentHash string `json:"parentHash"`
+		}
+
+		if err := c.RPC().CallContext(ctx, &block, "eth_getBlockByNumber", "latest", false); err != nil {
+			t.Fatalf("Failed to get latest block: %v", err)
+		}
+
+		num, err := strconv.ParseUint(block.Number[2:], 16, 64)
+		if err != nil {
+			t.Fatalf("Failed to get latest block: %v", err)
+		}
+
+		if num >= 11 {
+			break
+		}
+
+		select {
+		case <-ctx.Done():
+			t.Fatalf("Timeout when waiting for the hardfork block")
+		default:
+		}
+	}
+
 	rpc := ethclient.NewClient(c.RPC())
 
 	pk, err := crypto.HexToECDSA("9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c")
@@ -94,14 +126,14 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 		time.Sleep(time.Second)
 	}
 
-	//if blockNumber == 0 {
-	//	t.Fatal("fatal block number err:", blockNumber)
-	//}
-
 	data, err := store.Items(nil, common.HexToHash("0x0"))
 	if err != nil {
 		t.Fatal("setItem err:", err)
 	}
 
-	t.Log(data == common.HexToHash("0x1"), data, common.HexToHash("0x1"))
+	if data != common.HexToHash("0x1") {
+		t.Fatal("contract data set err:", err)
+	}
+
+	t.Log(data, common.HexToHash("0x1"))
 }
