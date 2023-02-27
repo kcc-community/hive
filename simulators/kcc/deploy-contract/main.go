@@ -75,7 +75,10 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	txJson, _ = tx.MarshalJSON()
 	t.Log("SetItem transaction", string(txJson))
 
-	data, err := store.Items(nil, common.HexToHash("0x0"))
+	opt := &bind.CallOpts{
+		From: address,
+	}
+	data, err := store.Items(opt, common.HexToHash("0x0"))
 	if err != nil {
 		t.Fatal("setItem err:", err)
 	}
