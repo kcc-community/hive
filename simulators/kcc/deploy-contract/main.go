@@ -115,6 +115,7 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	t.Log("SetItem transaction", string(txJson))
 
 	//var blockHash *common.Hash
+<<<<<<< HEAD
 	for i := 0; i < 5; i++ {
 
 		var transaction *rpcTransaction
@@ -140,17 +141,24 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 		t.Fatal("getBlockNumber err:", err)
 	}
 	for i := 0; i < 5; i++ {
-		newBlockNumber, err := rpc.BlockNumber(context.Background())
+
+		var transaction *rpcTransaction
+		err := c.RPC().Call(&transaction, "eth_getTransactionByHash", tx.Hash().String())
 		if err != nil {
-			t.Fatal("getBlockNumber err:", err)
+			t.Fatal("account1 call eth_getTransactionByHash err:", err)
 		}
 
-		if blockNumber > 0 && newBlockNumber > blockNumber+2 {
+		if transaction.BlockHash != nil {
+			//blockHash = transaction.BlockHash
 			break
 		}
-
-		time.Sleep(time.Second)
 	}
+
+	receipts, err := rpc.TransactionReceipt(context.Background(), tx.Hash())
+	if err != nil {
+		t.Fatal("account1 call eth_getBlockByHash err:", err)
+	}
+	t.Log("receipts,gas_used: ", receipts.GasUsed)
 
 	//if blockNumber == 0 {
 	//	t.Fatal("fatal block number err:", blockNumber)
