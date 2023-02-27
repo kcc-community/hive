@@ -114,7 +114,6 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	txJson, _ = tx.MarshalJSON()
 	t.Log("SetItem transaction", string(txJson))
 
-	//var blockHash *common.Hash
 	for i := 0; i < 5; i++ {
 
 		var transaction *rpcTransaction
@@ -135,34 +134,6 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 		t.Fatal("call eth_TransactionReceipt err:", err)
 	}
 	t.Log("receipts,gas_used: ", receipts.GasUsed)
-	blockNumber, err := rpc.BlockNumber(context.Background())
-	if err != nil {
-		t.Fatal("getBlockNumber err:", err)
-	}
-	for i := 0; i < 5; i++ {
-
-		var transaction *rpcTransaction
-		err := c.RPC().Call(&transaction, "eth_getTransactionByHash", tx.Hash().String())
-		if err != nil {
-			t.Fatal("account1 call eth_getTransactionByHash err:", err)
-		}
-
-		if transaction.BlockHash != nil {
-			//blockHash = transaction.BlockHash
-			break
-		}
-		time.Sleep(time.Second)
-	}
-
-	receipts, err := rpc.TransactionReceipt(context.Background(), tx.Hash())
-	if err != nil {
-		t.Fatal("call eth_TransactionReceipt err:", err)
-	}
-	t.Log("receipts,gas_used: ", receipts.GasUsed)
-
-	//if blockNumber == 0 {
-	//	t.Fatal("fatal block number err:", blockNumber)
-	//}
 
 	data, err := store.Items(nil, common.HexToHash("0x0"))
 	if err != nil {
