@@ -6,7 +6,9 @@ contract Store {
     mapping(bytes32 => bytes32) public items;
 
     function setItem(bytes32 key, bytes32 value) external {
-        items[key] = value;
+        for (uint i = 1; i < 100000; i++) {
+            items[key] = value;
+        }
         emit ItemSet(key, value);
     }
 }
