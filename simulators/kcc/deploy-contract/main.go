@@ -135,6 +135,26 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 		t.Fatal("call eth_TransactionReceipt err:", err)
 	}
 	t.Log("receipts,gas_used: ", receipts.GasUsed)
+	blockNumber, err := rpc.BlockNumber(context.Background())
+	if err != nil {
+		t.Fatal("getBlockNumber err:", err)
+	}
+	for i := 0; i < 5; i++ {
+		newBlockNumber, err := rpc.BlockNumber(context.Background())
+		if err != nil {
+			t.Fatal("getBlockNumber err:", err)
+		}
+
+		if blockNumber > 0 && newBlockNumber > blockNumber+2 {
+			break
+		}
+
+		time.Sleep(time.Second)
+	}
+
+	//if blockNumber == 0 {
+	//	t.Fatal("fatal block number err:", blockNumber)
+	//}
 
 	data, err := store.Items(nil, common.HexToHash("0x0"))
 	if err != nil {
