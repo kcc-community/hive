@@ -17,8 +17,8 @@ import (
 
 func main() {
 	suite := hivesim.Suite{
-		Name:        "kcc-smoke",
-		Description: "A general somke test case for KCC",
+		Name:        "kcc-new-txpool",
+		Description: "A general new-txpool test case for KCC",
 	}
 	suite.Add(hivesim.ClientTestSpec{
 		Role:        "eth1",
