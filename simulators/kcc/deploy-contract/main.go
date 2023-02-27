@@ -120,18 +120,19 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 		var transaction *rpcTransaction
 		err := c.RPC().Call(&transaction, "eth_getTransactionByHash", tx.Hash().String())
 		if err != nil {
-			t.Fatal("account1 call eth_getTransactionByHash err:", err)
+			t.Fatal("call eth_getTransactionByHash err:", err)
 		}
 
 		if transaction.BlockHash != nil {
 			//blockHash = transaction.BlockHash
 			break
 		}
+		time.Sleep(time.Second)
 	}
 
 	receipts, err := rpc.TransactionReceipt(context.Background(), tx.Hash())
 	if err != nil {
-		t.Fatal("account1 call eth_getBlockByHash err:", err)
+		t.Fatal("call eth_TransactionReceipt err:", err)
 	}
 	t.Log("receipts,gas_used: ", receipts.GasUsed)
 
