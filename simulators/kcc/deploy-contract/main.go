@@ -96,6 +96,7 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 		t.Fatal("NewKeyedTransactorWithChainID err", err)
 	}
 
+	transactOpts.Nonce = big.NewInt(0)
 	address, transaction, store, err := Store.DeployStore(transactOpts, rpc)
 	if err != nil {
 		t.Fatal("DeployStore err:", err)
@@ -104,6 +105,7 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	txJson, _ := transaction.MarshalJSON()
 	t.Log("transaction", string(txJson), address.String())
 
+	transactOpts.Nonce = big.NewInt(1)
 	tx, err := store.SetItem(transactOpts, common.HexToHash("0x0"), common.HexToHash("0x1"))
 	if err != nil {
 		t.Fatal("setItem err:", err)
