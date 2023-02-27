@@ -1,13 +1,18 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/hive/hivesim"
-	Store "github.com/ethereum/hive/simulators/kcc/new-txpool/contract"
+	Store "github.com/ethereum/hive/simulators/kcc/deploy-contract/contract"
 	"math/big"
+	"strconv"
+	"time"
 )
 
 func main() {
@@ -48,6 +53,37 @@ func main() {
 }
 
 func deployContract(t *hivesim.T, c *hivesim.Client) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	defer cancel()
+
+	for {
+		var block struct {
+			Number     string `json:"number"`
+			Hash       string `json:"hash"`
+			ParentHash string `json:"parentHash"`
+		}
+
+		if err := c.RPC().CallContext(ctx, &block, "eth_getBlockByNumber", "latest", false); err != nil {
+			t.Fatalf("Failed to get latest block: %v", err)
+		}
+
+		num, err := strconv.ParseUint(block.Number[2:], 16, 64)
+		if err != nil {
+			t.Fatalf("Failed to get latest block: %v", err)
+		}
+
+		if num >= 11 {
+			break
+		}
+
+		select {
+		case <-ctx.Done():
+			t.Fatalf("Timeout when waiting for the hardfork block")
+		default:
+		}
+	}
+
 	rpc := ethclient.NewClient(c.RPC())
 
 	pk, err := crypto.HexToECDSA("9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c")
@@ -60,6 +96,7 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 		t.Fatal("NewKeyedTransactorWithChainID err", err)
 	}
 
+	transactOpts.Nonce = big.NewInt(0)
 	address, transaction, store, err := Store.DeployStore(transactOpts, rpc)
 	if err != nil {
 		t.Fatal("DeployStore err:", err)
@@ -68,6 +105,8 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	txJson, _ := transaction.MarshalJSON()
 	t.Log("transaction", string(txJson), address.String())
 
+	time.Sleep(time.Second * 2)
+	transactOpts.Nonce = big.NewInt(1)
 	tx, err := store.SetItem(transactOpts, common.HexToHash("0x0"), common.HexToHash("0x1"))
 	if err != nil {
 		t.Fatal("setItem err:", err)
@@ -75,10 +114,54 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	txJson, _ = tx.MarshalJSON()
 	t.Log("SetItem transaction", string(txJson))
 
+	//var blockHash *common.Hash
+	for i := 0; i < 5; i++ {
+
+		var transaction *rpcTransaction
+		err := c.RPC().Call(&transaction, "eth_getTransactionByHash", tx.Hash().String())
+		if err != nil {
+			t.Fatal("call eth_getTransactionByHash err:", err)
+		}
+
+		if transaction.BlockHash != nil {
+			//blockHash = transaction.BlockHash
+			break
+		}
+		time.Sleep(time.Second)
+	}
+
+	receipts, err := rpc.TransactionReceipt(context.Background(), tx.Hash())
+	if err != nil {
+		t.Fatal("call eth_TransactionReceipt err:", err)
+	}
+	t.Log("receipts,gas_used: ", receipts.GasUsed)
+
 	data, err := store.Items(nil, common.HexToHash("0x0"))
 	if err != nil {
 		t.Fatal("setItem err:", err)
 	}
 
-	t.Log(data == common.HexToHash("0x1"), data, common.HexToHash("0x1"))
+	if data != common.HexToHash("0x1") {
+		t.Fatal("contract data set err:", err)
+	}
+
+	t.Log(data, common.HexToHash("0x1"))
+}
+
+type rpcTransaction struct {
+	tx *types.Transaction
+	txExtraInfo
+}
+
+type txExtraInfo struct {
+	BlockNumber *string         `json:"blockNumber,omitempty"`
+	BlockHash   *common.Hash    `json:"blockHash,omitempty"`
+	From        *common.Address `json:"from,omitempty"`
+}
+
+func (tx *rpcTransaction) UnmarshalJSON(msg []byte) error {
+	if err := json.Unmarshal(msg, &tx.tx); err != nil {
+		return err
+	}
+	return json.Unmarshal(msg, &tx.txExtraInfo)
 }
