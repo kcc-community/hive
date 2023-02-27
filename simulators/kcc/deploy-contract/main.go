@@ -115,7 +115,6 @@ func deployContract(t *hivesim.T, c *hivesim.Client) {
 	t.Log("SetItem transaction", string(txJson))
 
 	//var blockHash *common.Hash
-<<<<<<< HEAD
 	for i := 0; i < 5; i++ {
 
 		var transaction *rpcTransaction
