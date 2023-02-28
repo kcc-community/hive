@@ -17,13 +17,13 @@ import (
 
 func main() {
 	suite := hivesim.Suite{
-		Name:        "kcc-smoke",
-		Description: "A general somke test case for KCC",
+		Name:        "kcc-new-txpool",
+		Description: "A general new-txpool test case for KCC",
 	}
 	suite.Add(hivesim.ClientTestSpec{
 		Role:        "eth1",
-		Name:        "mine one block",
-		Description: "Waits for a single block to be mined by kcc",
+		Name:        "kcc-new-txpool",
+		Description: "new-txpool sort in different account after ishikari",
 		Files: map[string]string{
 			"/genesis.json": "genesis.json",
 		},
