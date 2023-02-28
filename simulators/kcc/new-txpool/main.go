@@ -22,8 +22,8 @@ func main() {
 	}
 	suite.Add(hivesim.ClientTestSpec{
 		Role:        "eth1",
-		Name:        "mine one block",
-		Description: "Waits for a single block to be mined by kcc",
+		Name:        "kcc-new-txpool",
+		Description: "new-txpool sort in different account after ishikari",
 		Files: map[string]string{
 			"/genesis.json": "genesis.json",
 		},

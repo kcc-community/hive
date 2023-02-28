@@ -22,8 +22,8 @@ func main() {
 	}
 	suite.Add(hivesim.ClientTestSpec{
 		Role:        "eth1",
-		Name:        "mine one block",
-		Description: "Waits for a single block to be mined by kcc",
+		Name:        "deploy a contract",
+		Description: "Deploy a contract and call contract with large gas use",
 		Files: map[string]string{
 			"/genesis.json": "genesis.json",
 		},
