@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/params"
 	"math/big"
 	"time"
 
@@ -79,4 +80,9 @@ func minGasPrice(t *hivesim.T, c *hivesim.Client) {
 	}
 
 	t.Logf("client way, gas: %v", gas)
+	if gas.Cmp(new(big.Int).SetUint64(3*params.GWei)) == 0 {
+		return
+	} else {
+		t.Fatal("failed to get fine gas price, gas: %v", gas)
+	}
 }
