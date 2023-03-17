@@ -70,6 +70,13 @@ For each client, we test if it can serve as a sync source for all other clients 
 }
 
 func runSourceTest(t *hivesim.T, c *hivesim.Client) {
+	t.Logf("Notice: Versions before KCC 1.2.1 cannot used for this case.")
+
+	if c.Type == "kcc_v1.2.0" || c.Type == "kcc_v1.2.1" {
+		t.Logf("Versions before KCC 1.2.1 cannot used for this case.")
+		return
+	}
+
 	// Check whether the source has imported its chain.rlp correctly.
 	source := &node{c}
 	if err := source.checkHead(testchainHeadNumber, testchainHeadHash); err != nil {
