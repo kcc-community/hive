@@ -174,6 +174,8 @@ func newTxPoolTest(t *hivesim.T, c *hivesim.Client) {
 		}
 	}
 
+	time.Sleep(time.Millisecond * 500)
+
 	client := ethclient.NewClient(c.RPC())
 	var latestTx *types.Transaction
 
