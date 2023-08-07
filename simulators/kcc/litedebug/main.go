@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -22,8 +24,8 @@ var (
 
 func main() {
 	suite := hivesim.Suite{
-		Name:        "lightdebug mode",
-		Description: "Testcase for lightdebug mode",
+		Name:        "litedebug mode",
+		Description: "Testcase for litedebug mode",
 	}
 
 	newParameters := func(extra string) hivesim.Params {
@@ -54,13 +56,31 @@ func main() {
 
 	suite.Add(hivesim.ClientTestSpec{
 		Role: "eth1",
-		Name: "lightdebug(only)",
+		Name: "litedebug(only)",
 		Files: map[string]string{
 			"/genesis.json": "genesis.json",
 		},
-		Parameters: newParameters("HIVE_RPC_LIGHT_DEBUG_ONLY"),
+		Parameters: newParameters("HIVE_RPC_LITE_DEBUG_ONLY"),
 		Run:        lightOnly,
-	})
+	}).Add(
+		hivesim.ClientTestSpec{
+			Role: "eth1",
+			Name: "litedebug + full debug ",
+			Files: map[string]string{
+				"/genesis.json": "genesis.json",
+			},
+			Parameters: newParameters("HIVE_RPC_LITE_DEBUG_AND_DEBUG"),
+			Run:        liteAndFullDebug,
+		}).Add(
+		hivesim.ClientTestSpec{
+			Role: "eth1",
+			Name: "full debug (only)",
+			Files: map[string]string{
+				"/genesis.json": "genesis.json",
+			},
+			Parameters: newParameters("NOT_USED_OPTION"),
+			Run:        fullDebug,
+		})
 
 	hivesim.MustRunSuite(hivesim.New(), suite)
 }
@@ -76,7 +96,10 @@ func sendTransaction(ctx context.Context, t *hivesim.T, c *hivesim.Client) (comm
 	cli := ethclient.NewClient(c.RPC())
 
 	// hex to private key
-	privateKey, err := crypto.HexToECDSA(MinerKey)
+	privateKey, err := crypto.HexToECDSA(MinerKey[2:])
+	if err != nil {
+		t.Fatalf("failed to convert key: %v", err)
+	}
 
 	// sign transaction
 	nonce, err := cli.PendingNonceAt(ctx, MinerAddr)
@@ -111,7 +134,11 @@ func sendTransaction(ctx context.Context, t *hivesim.T, c *hivesim.Client) (comm
 		// wait for the transaction to be mined
 		receipt, err := cli.TransactionReceipt(ctx, tx.Hash())
 		if err != nil {
-			t.Fatalf("failed to get receipt: %v", err)
+			if err.Error() != "not found" {
+				t.Fatalf("failed to get receipt: %v", err)
+			}
+			time.Sleep(time.Second)
+			continue
 		}
 
 		if receipt.BlockNumber != nil {
@@ -131,19 +158,71 @@ func lightOnly(t *hivesim.T, c *hivesim.Client) {
 
 	var result json.RawMessage
 
-	// debug_traceBlock
-	err := c.RPC().CallContext(ctx, &result, "debug_traceBlock", blockNum)
+	// debug_traceBlockByNumber
+	err := c.RPC().CallContext(ctx, &result, "debug_traceBlockByNumber", hexutil.EncodeBig(blockNum))
 	if err != nil {
-		t.Fatalf("failed to debug_traceBlock: %v", err)
+		t.Fatalf("failed to debug_traceBlockByNumber: %v", err)
 	}
 
-	t.Logf("debug_traceBlock result: %s", result)
+	t.Logf("debug_traceBlockByNumber result: %s", result)
 
 	// debug_traceBlockFromFile
 	err = c.RPC().CallContext(ctx, &result, "debug_traceBlockFromFile", "non-exist-file")
 
-	if err.Error() != "could not read file: non-exist-file" {
-		t.Fatalf("failed to debug_traceBlockFromFile: %v", err)
+	if !strings.Contains(err.Error(), "the method debug_traceBlockFromFile does not exist/is not available") {
+		t.Fatalf("debug_traceBlockFromFile should not be available, the returned error is actually: %v", err)
+	}
+
+}
+
+func liteAndFullDebug(t *hivesim.T, c *hivesim.Client) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*120)
+	defer cancel()
+
+	_, blockNum := sendTransaction(ctx, t, c)
+
+	var result json.RawMessage
+
+	// debug_traceBlockByNumber
+	err := c.RPC().CallContext(ctx, &result, "debug_traceBlockByNumber", hexutil.EncodeBig(blockNum))
+	if err != nil {
+		t.Fatalf("failed to debug_traceBlockByNumber: %v", err)
+	}
+
+	t.Logf("debug_traceBlockByNumber result: %s", result)
+
+	// debug_traceBlockFromFile
+	err = c.RPC().CallContext(ctx, &result, "debug_traceBlockFromFile", "non-exist-file")
+
+	if !strings.Contains(err.Error(), "could not read file: open non-exist-file: no such file or directory") {
+		t.Fatalf("debug_traceBlockFromFile should be available, the returned error is actually: %v", err)
+	}
+
+}
+
+func fullDebug(t *hivesim.T, c *hivesim.Client) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*120)
+	defer cancel()
+
+	_, blockNum := sendTransaction(ctx, t, c)
+
+	var result json.RawMessage
+
+	// debug_traceBlockByNumber
+	err := c.RPC().CallContext(ctx, &result, "debug_traceBlockByNumber", hexutil.EncodeBig(blockNum))
+	if err != nil {
+		t.Fatalf("failed to debug_traceBlockByNumber: %v", err)
+	}
+
+	t.Logf("debug_traceBlockByNumber result: %s", result)
+
+	// debug_traceBlockFromFile
+	err = c.RPC().CallContext(ctx, &result, "debug_traceBlockFromFile", "non-exist-file")
+
+	if !strings.Contains(err.Error(), "could not read file: open non-exist-file: no such file or directory") {
+		t.Fatalf("debug_traceBlockFromFile should be available, the returned error is actually: %v", err)
 	}
 
 }

@@ -1,4 +1,4 @@
-module github.com/ethereum/hive/simulators/kcc/lightdebug
+module github.com/ethereum/hive/simulators/kcc/litedebug
 
 go 1.17
 

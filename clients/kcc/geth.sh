@@ -151,14 +151,14 @@ if [ "$HIVE_LES_SERVER" == "1" ]; then
   FLAGS="$FLAGS --light.serve 50 --light.nosyncserve"
 fi
 
-if [ "$HIVE_RPC_LIGHT_DEBUG_ONLY" == "1"]; then
+if [ "$HIVE_RPC_LITE_DEBUG_ONLY" == "1" ]; then
     # Configure RPC.
-    FLAGS="$FLAGS --http --http.addr=0.0.0.0 --http.port=8545 --http.api=admin,lightdebug,eth,miner,net,personal,txpool,web3"
-    FLAGS="$FLAGS --ws --ws.addr=0.0.0.0 --ws.origins \"*\" --ws.api=admin,lightdebug,eth,miner,net,personal,txpool,web3"
-elif [ "$HIVE_RPC_LIGHT_DEBUG_AND_DEBUG" == "1" ]; then 
+    FLAGS="$FLAGS --http --http.addr=0.0.0.0 --http.port=8545 --http.api=admin,litedebug,eth,miner,net,personal,txpool,web3"
+    FLAGS="$FLAGS --ws --ws.addr=0.0.0.0 --ws.origins \"*\" --ws.api=admin,litedebug,eth,miner,net,personal,txpool,web3"
+elif [ "$HIVE_RPC_LITE_DEBUG_AND_DEBUG" == "1" ]; then 
     # Configure RPC.
-    FLAGS="$FLAGS --http --http.addr=0.0.0.0 --http.port=8545 --http.api=admin,lightdebug,debug,eth,miner,net,personal,txpool,web3"
-    FLAGS="$FLAGS --ws --ws.addr=0.0.0.0 --ws.origins \"*\" --ws.api=admin,lightdebug,debug,eth,miner,net,personal,txpool,web3"
+    FLAGS="$FLAGS --http --http.addr=0.0.0.0 --http.port=8545 --http.api=admin,litedebug,debug,eth,miner,net,personal,txpool,web3"
+    FLAGS="$FLAGS --ws --ws.addr=0.0.0.0 --ws.origins \"*\" --ws.api=admin,litedebug,debug,eth,miner,net,personal,txpool,web3"
 else
     # Configure RPC.
     FLAGS="$FLAGS --http --http.addr=0.0.0.0 --http.port=8545 --http.api=admin,debug,eth,miner,net,personal,txpool,web3"
