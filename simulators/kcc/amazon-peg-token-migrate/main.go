@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/hive/hivesim"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var (
@@ -105,23 +106,25 @@ func MigrateUSDT(t *hivesim.T, c *hivesim.Client) {
 	// 1. check the USDT balance of the USDT contract
 	//
 
-	balance := new(big.Int)
+	var rawResult hexutil.Bytes
 
-	if err := c.RPC().CallContext(ctx, balance, "eth_call", map[string]interface{}{
+	if err := c.RPC().CallContext(ctx, &rawResult, "eth_call", map[string]interface{}{
 		"from": nil,
 		"to":   usdtContractAddr,
 		// 0x70a08231 is the signature of the balanceOf function
-		"data": "0x70a08231000000000000000000000000" + migratorAddr.Hex()[2:],
+		"data": "0x70a08231000000000000000000000000" + usdtContractAddr.Hex()[2:],
 	}, "latest"); err != nil {
 		t.Fatalf("failed to call balanceOf: %v", err)
 	}
 
+	balance := new(big.Int).SetBytes(rawResult)
+
 	// print balance
-	t.Logf("migrator balance: %s", balance.String())
+	t.Logf("migrating balance: %s", balance.String())
 
 	// the balance must be greater than 0
 	if balance.Cmp(big.NewInt(0)) <= 0 {
-		t.Fatal("migrator balance is not enough")
+		t.Fatal("migrating balance is not enough")
 	}
 
 	//
@@ -132,7 +135,7 @@ func MigrateUSDT(t *hivesim.T, c *hivesim.Client) {
 		"to":   usdtContractAddr,
 		// The signature of the migrate function is "migrate(address, address)"
 		"data": "0x1068361f000000000000000000000000" + usdtContractAddr.Hex()[2:] + "000000000000000000000000" + migratorAddr.Hex()[2:],
-	}); err == nil {
+	},"latest"); err == nil {
 		t.Fatal("non-migrator should not be able to migrate")
 	} else {
 		// err is not nil
@@ -150,8 +153,11 @@ func MigrateUSDT(t *hivesim.T, c *hivesim.Client) {
 		"to":   usdtContractAddr,
 		// The signature of the migrate function is "migrate(address, address)"
 		"data": "0x1068361f000000000000000000000000" + usdtContractAddr.Hex()[2:] + "000000000000000000000000" + migratorAddr.Hex()[2:],
-	}); err != nil {
+	},"latest"); err != nil {
 		t.Fatalf("failed to migrate: %v", err)
 	}
 
 }
+
+
+
