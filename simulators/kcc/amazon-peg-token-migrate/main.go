@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"math/big"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/hive/hivesim"
 )
 
@@ -63,6 +66,35 @@ func main() {
 
 func MigrateUSDT(t *hivesim.T, c *hivesim.Client) {
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	//
+	// Wait for all the hard forks to be activated
+	//   - wait until block 13
+
+	for {
+
+		select {
+		case <-ctx.Done():
+			t.Fatalf("timeout when getting receipt: %v", ctx.Err())
+		default:
+		}
+
+		// wait for the block number to be greater or equal to 13
+		block, err := ethclient.NewClient(c.RPC()).BlockByNumber(ctx, nil)
+
+		if err != nil {
+			t.Fatalf("failed to get block: %v", err)
+		}
+
+		if block.Number().Uint64() >= 13 {
+			break
+		}
+
+		time.Sleep(time.Second)
+	}
+
 	var (
 		usdtContractAddr = common.HexToAddress("0x0039f574eE5cC39bdD162E9A88e3EB1f111bAF48")
 		migratorAddr     = common.HexToAddress(os.Getenv("MIGRATOR_ADDR"))
@@ -75,7 +107,7 @@ func MigrateUSDT(t *hivesim.T, c *hivesim.Client) {
 
 	balance := new(big.Int)
 
-	if err := c.RPC().Call(balance, "eth_call", map[string]interface{}{
+	if err := c.RPC().CallContext(ctx, balance, "eth_call", map[string]interface{}{
 		"from": nil,
 		"to":   usdtContractAddr,
 		// 0x70a08231 is the signature of the balanceOf function
@@ -95,7 +127,7 @@ func MigrateUSDT(t *hivesim.T, c *hivesim.Client) {
 	//
 	// 2. The non-migrator should not be able to migrate
 	//
-	if err := c.RPC().Call(nil, "eth_call", map[string]interface{}{
+	if err := c.RPC().CallContext(ctx, nil, "eth_call", map[string]interface{}{
 		"from": nonMigratorAddr,
 		"to":   usdtContractAddr,
 		// The signature of the migrate function is "migrate(address, address)"
@@ -113,7 +145,7 @@ func MigrateUSDT(t *hivesim.T, c *hivesim.Client) {
 	//
 	// 3. The migrator should be able to migrate
 	//
-	if err := c.RPC().Call(nil, "eth_call", map[string]interface{}{
+	if err := c.RPC().CallContext(ctx, nil, "eth_call", map[string]interface{}{
 		"from": migratorAddr,
 		"to":   usdtContractAddr,
 		// The signature of the migrate function is "migrate(address, address)"
