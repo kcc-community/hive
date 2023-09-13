@@ -68,7 +68,7 @@ func main() {
 	hivesim.MustRunSuite(hivesim.New(), suite)
 }
 
-func sendTransaction(ctx context.Context, t *hivesim.T, c *hivesim.Client, key string, to common.Address, value *big.Int) {
+func sendTransaction(ctx context.Context, t *hivesim.T, c *hivesim.Client, key string, to common.Address, value *big.Int, data []byte) (receipt *types.Receipt) {
 
 	cli := ethclient.NewClient(c.RPC())
 
@@ -92,6 +92,7 @@ func sendTransaction(ctx context.Context, t *hivesim.T, c *hivesim.Client, key s
 		Value:    value,
 		Gas:      500000,
 		GasPrice: big.NewInt(params.GWei * 100),
+		Data:     data,
 	})
 	if err != nil {
 		t.Fatalf("failed to sign tx: %v", err)
@@ -121,7 +122,7 @@ func sendTransaction(ctx context.Context, t *hivesim.T, c *hivesim.Client, key s
 		}
 
 		if receipt.BlockNumber != nil {
-			return
+			return receipt
 		}
 
 	}
@@ -165,7 +166,7 @@ func MigrateStaking(t *hivesim.T, c *hivesim.Client) {
 	//    - key: NonMinerKey
 	//
 
-	sendTransaction(ctx, t, c, NonMinerKey, ValidatorsContract, (new(big.Int)).Mul(big.NewInt(params.Ether), big.NewInt(990000)))
+	sendTransaction(ctx, t, c, NonMinerKey, ValidatorsContract, (new(big.Int)).Mul(big.NewInt(params.Ether), big.NewInt(990000)), nil)
 
 	//
 	// 2. The non-miner cannot migrate KCS
@@ -193,6 +194,36 @@ func MigrateStaking(t *hivesim.T, c *hivesim.Client) {
 		"data": "0xc53aabf7", // signature of "recoverGoDaofunds()"
 	}, "latest"); err != nil {
 		t.Fatalf("failed to migrate KCS: %v", err)
+	}
+
+	//
+	// 4. Let's do the migration by sending a tx
+	//
+
+	cli := ethclient.NewClient(c.RPC())
+
+	balanceBefore, err := cli.BalanceAt(ctx, MinerAddr, nil)
+	if err != nil {
+		t.Fatalf("failed to get balance: %v", err)
+	}
+
+	receipt := sendTransaction(ctx, t, c, MinerKey, ValidatorsContract, (new(big.Int)).Mul(big.NewInt(params.Ether), big.NewInt(990000)), common.FromHex("0xc53aabf7"))
+
+	balanceAfter, err := cli.BalanceAt(ctx, MinerAddr, nil)
+	if err != nil {
+		t.Fatalf("failed to get balance: %v", err)
+	}
+
+	diff := new(big.Int).Sub(balanceAfter, balanceBefore)
+
+	gasFee := new(big.Int).Mul(new(big.Int).SetUint64(receipt.GasUsed), new(big.Int).SetUint64(receipt.GasUsed))
+
+	diff.Add(diff, gasFee)
+
+	// diff should be 990000 KCS
+
+	if diff.Cmp((new(big.Int)).Mul(big.NewInt(params.Ether), big.NewInt(990000))) != 0 {
+		t.Fatalf("unexpected balance diff: %v", diff)
 	}
 
 }
