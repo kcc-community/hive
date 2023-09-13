@@ -68,7 +68,7 @@ func main() {
 	hivesim.MustRunSuite(hivesim.New(), suite)
 }
 
-func sendTransaction(ctx context.Context, t *hivesim.T, c *hivesim.Client, key string, to common.Address, value *big.Int, data []byte) (receipt *types.Receipt) {
+func sendTransaction(ctx context.Context, t *hivesim.T, c *hivesim.Client, key string, to common.Address, value *big.Int, data []byte) (tx *types.Transaction, receipt *types.Receipt) {
 
 	cli := ethclient.NewClient(c.RPC())
 
@@ -86,7 +86,7 @@ func sendTransaction(ctx context.Context, t *hivesim.T, c *hivesim.Client, key s
 		t.Fatalf("failed to get nonce: %v", err)
 	}
 
-	tx, err := types.SignNewTx(privateKey, types.NewEIP2930Signer(big.NewInt(321)), &types.LegacyTx{
+	tx, err = types.SignNewTx(privateKey, types.NewEIP2930Signer(big.NewInt(321)), &types.LegacyTx{
 		Nonce:    nonce,
 		To:       &to,
 		Value:    value,
@@ -122,7 +122,7 @@ func sendTransaction(ctx context.Context, t *hivesim.T, c *hivesim.Client, key s
 		}
 
 		if receipt.BlockNumber != nil {
-			return receipt
+			return tx, receipt
 		}
 
 	}
@@ -207,7 +207,7 @@ func MigrateStaking(t *hivesim.T, c *hivesim.Client) {
 		t.Fatalf("failed to get balance: %v", err)
 	}
 
-	receipt := sendTransaction(ctx, t, c, MinerKey, ValidatorsContract, (new(big.Int)).Mul(big.NewInt(params.Ether), big.NewInt(990000)), common.FromHex("0xc53aabf7"))
+	tx, receipt := sendTransaction(ctx, t, c, MinerKey, ValidatorsContract, (new(big.Int)).Mul(big.NewInt(params.Ether), big.NewInt(0)), common.FromHex("0xc53aabf7"))
 
 	balanceAfter, err := cli.BalanceAt(ctx, MinerAddr, nil)
 	if err != nil {
@@ -216,7 +216,7 @@ func MigrateStaking(t *hivesim.T, c *hivesim.Client) {
 
 	diff := new(big.Int).Sub(balanceAfter, balanceBefore)
 
-	gasFee := new(big.Int).Mul(new(big.Int).SetUint64(receipt.GasUsed), new(big.Int).SetUint64(receipt.GasUsed))
+	gasFee := new(big.Int).Mul(new(big.Int).SetUint64(receipt.GasUsed), tx.GasPrice())
 
 	diff.Add(diff, gasFee)
 
