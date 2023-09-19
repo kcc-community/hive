@@ -61,5 +61,6 @@ def to_strings:
     "ishikariBlock": env.HIVE_FORK_KCC_ISHIKARI| to_int,
     "ishikariPatch001Block": env.HIVE_FORK_KCC_ISHIKARI_PATCH001| to_int,
     "ishikariPatch002Block": env.HIVE_FORK_KCC_ISHIKARI_PATCH002| to_int,
+    "amazonBlock": env.HIVE_FORK_KCC_AMAZON| to_int,
   }|remove_empty
 }
